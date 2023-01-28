@@ -29,3 +29,7 @@ DEFAULT_PAGINATION = False
 
 # Uncomment following line if you want document-relative URLs when developing
 #RELATIVE_URLS = True
+
+PLUGINS = ['i18n_subsites']
+JINJA_ENVIRONMENT = {'extensions': ['jinja2.ext.i18n']}
+THEME = "pelican-bootstrap3"
