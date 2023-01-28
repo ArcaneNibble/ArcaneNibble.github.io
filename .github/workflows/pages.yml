@@ -2,6 +2,7 @@ name: pages
 
 permissions:
   id-token: write
+  pages: write
 
 on:
   push:
