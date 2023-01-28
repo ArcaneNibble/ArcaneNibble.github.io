@@ -22,3 +22,9 @@ jobs:
         run: |
           source venv/bin/activate
           make publish
+
+      - uses: actions/upload-pages-artifact@v1.0.7
+        with:
+          path: "content/"
+
+      - uses: actions/deploy-pages@v1.2.3
