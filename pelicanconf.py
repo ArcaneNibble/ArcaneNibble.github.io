@@ -1,5 +1,5 @@
-AUTHOR = 'test'
-SITENAME = 'test'
+AUTHOR = 'ArcaneNibble'
+SITENAME = 'ArcaneNibble\'s site'
 SITEURL = ''
 
 PATH = 'content'
@@ -15,15 +15,16 @@ TRANSLATION_FEED_ATOM = None
 AUTHOR_FEED_ATOM = None
 AUTHOR_FEED_RSS = None
 
-# Blogroll
-LINKS = (('Pelican', 'https://getpelican.com/'),
-         ('Python.org', 'https://www.python.org/'),
-         ('Jinja2', 'https://palletsprojects.com/p/jinja/'),
-         ('You can modify those links in your config file', '#'),)
+# # Blogroll
+# LINKS = (('Pelican', 'https://getpelican.com/'),
+#          ('Python.org', 'https://www.python.org/'),
+#          ('Jinja2', 'https://palletsprojects.com/p/jinja/'),
+#          ('You can modify those links in your config file', '#'),)
 
 # Social widget
-SOCIAL = (('You can add links in your config file', '#'),
-          ('Another social link', '#'),)
+SOCIAL = (('Twitter', 'https://twitter.com/ArcaneNibble'),
+          ('GitHub', 'https://github.com/ArcaneNibble/'),
+          ('Email', 'mailto:rqou@berkeley.edu', 'envelope'))
 
 DEFAULT_PAGINATION = False
 
@@ -33,3 +34,9 @@ DEFAULT_PAGINATION = False
 PLUGINS = ['i18n_subsites']
 JINJA_ENVIRONMENT = {'extensions': ['jinja2.ext.i18n']}
 THEME = "pelican-bootstrap3"
+
+DISPLAY_CATEGORIES_ON_MENU = False
+DISPLAY_CATEGORIES_ON_SIDEBAR = True
+DISPLAY_ARTICLE_INFO_ON_INDEX = True
+
+CUSTOM_LICENSE = 'Unless otherwise stated, all articles are published under the <a href="https://creativecommons.org/publicdomain/zero/1.0/legalcode">CC0</a> license.'
