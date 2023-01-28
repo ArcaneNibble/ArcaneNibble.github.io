@@ -14,10 +14,11 @@ jobs:
 
       - name: Install pelican
         run: |
-          ls -la
           python3 -m venv venv
           source venv/bin/activate
           pip install -r requirements.txt
 
       - name: Build site
-        run: make publish
+        run: |
+          source venv/bin/activate
+          make publish
