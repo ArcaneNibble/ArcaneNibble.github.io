@@ -1,5 +1,8 @@
 name: pages
 
+permissions:
+  id-token: write
+
 on:
   push:
     branches: [ "main" ]
@@ -25,6 +28,6 @@ jobs:
 
       - uses: actions/upload-pages-artifact@v1.0.7
         with:
-          path: "content/"
+          path: "output/"
 
       - uses: actions/deploy-pages@v1.2.3
