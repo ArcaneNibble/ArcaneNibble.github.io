@@ -1,7 +1,6 @@
 Title: Reverse engineering the Apple M1 Bluetooth interface
-Date: 2023-02-07
+Date: 2023-02-08
 Summary: In this post I walk through the thought process as I reverse engineered the M1 Bluetooth module.
-Status: draft
 
 Back in April of 2022, I reverse-engineered the interface that drivers use to communicate with the Bluetooth module on Apple M1 machines so that [Asahi Linux](https://asahilinux.org/) could support Bluetooth on these devices. I documented the results in [a prototype driver](https://github.com/ArcaneNibble/m1-bluetooth-prototype) that was written in Python and ran in userspace. By July, other members of the Asahi team had [written a real driver](https://asahilinux.org/2022/07/july-2022-release/) that is now shipping to end users.
 
@@ -12,7 +11,7 @@ In this post, I will document the thought processes that went into this reverse 
 Unfortunately, this post cannot be an introduction to reverse engineering as a whole. Reverse engineering is an extremely broad topic with many areas to cover, including
 
 * assembly language and the AArch64 instruction set. The official documentation for the AArch64 instruction set can be found [here](https://developer.arm.com/documentation/102374/0101).
-* operating systems. It is extremely useful to have a general idea of how operating systems work and are designed, but, as I will show here, a detailed knowledge of macOS internals is not specifically required. I have gotten away with consulting the [official IOKit documentation](https://developer.apple.com/documentation/iokit) when needed, figuring things out as I go along.
+* operating systems. It is extremely useful to have a general idea of how operating systems work and are designed, but, as I will show here, a detailed knowledge of macOS internals is not specifically required. I have gotten away with consulting the [official IOKit documentation](https://developer.apple.com/documentation/iokit) only when needed, figuring things out as I go along.
 * educated guesswork. _Lots_ of guesswork. Having a vague idea about how other systems work and are designed helps when reverse engineering an unknown system. There are many common patterns (e.g. ring buffers, doorbell registers, firmware loading) that occur throughout different systems, and having this knowledge available to hand makes guessing much faster and more efficient.
 
 # Initial reconnaissance
@@ -32,11 +31,11 @@ Repeating the same search on the IOService "plane" results in the following hier
 
 ![Screenshot of IORegistryExplorer]({static}/images/m1-bt-ioreg-ioservice.png)
 
-Some quick research online seems to hint that this may be an Apple-specific interface. At this point, my preference is to jump in to static analysis.
+Some quick research online seems to hint that this may be an Apple-specific interface (most WiFi+BT cards in mini-PCIe form factor use USB for the Bluetooth function). At this point, my preference is to jump in to static analysis.
 
 # Static analysis
 
-I began static analysis by loading `AppleBluetoothModule` and `AppleConvergedIPCOLYBTControl` (visible in IORegistryExplorer), as well as the similarly-named `AppleConvergedPCI` as a guess, into [Ghidra](https://ghidra-sre.org/). These drivers can be found inside `/System/Library/Extensions` of a macOS install. Interestingly, when loading these drivers, Ghidra informs us that they are "fat binaries" containing both x86_64 code as well as AArch64 code. It turns out that some of the latest x86 Macs _also_ have a similar Bluetooth module connected over PCIe, and this reverse engineering work has been useful for them as well.
+I began static analysis by loading `AppleBluetoothModule` and `AppleConvergedIPCOLYBTControl` (visible in IORegistryExplorer), as well as the similarly-named `AppleConvergedPCI` as a guess, into [Ghidra](https://ghidra-sre.org/). These drivers can be found inside `/System/Library/Extensions` of a macOS install. Interestingly, when loading these drivers, Ghidra informs us that they are "fat binaries" containing both x86_64 code as well as AArch64 code. It turns out that some of the latest x86 Macs _also_ have a similar Bluetooth module connected over PCIe, and this reverse engineering work is applicable for them as well.
 
 The first thing I do when loading a macOS driver into Ghidra is to look at the class and function names. These are usually not obfuscated and give a good overview of what the code might be doing. Some of the functions in `AppleBluetoothModule` look like this:
 
@@ -50,9 +49,9 @@ Ah! At this point I know I'm in the right place because I can see familiar numbe
 
 ![Screenshot of getRegisterOffset function]({static}/images/m1-bt-getreg.png)
 
-At this point, we don't yet know what any of these registers do, but the fact that they've been wrapped in this layer of indirection means that most likely either these registers are the _only_ registers the driver accesses or they're at least the _most important_ ones. We can quickly note these down in a "notes" file.
+We don't yet know what any of these registers do, but the fact that they've been wrapped in this layer of indirection means that most likely either these registers are the _only_ registers the driver accesses, or they're at least the _most important_ ones. We can quickly note these down in a "notes" file.
 
-At this point, nothing else in `AppleConvergedPCI` seems to be doing anything particularly interesting, so we move on to `AppleConvergedIPCOLYBTControl`.
+Nothing else in `AppleConvergedPCI` seemed to be doing anything particularly interesting, so we move on to `AppleConvergedIPCOLYBTControl`.
 
 ![Screenshot of Ghidra with AppleConvergedIPCOLYBTControl loaded]({static}/images/m1-bt-appleconvergedipc.png)
 
@@ -88,7 +87,7 @@ Finally, various "debug" and "state dump" functions often provide useful hints, 
 
 ![Screenshot of Ghidra showing ACIPCRTIDevice::stateDump]({static}/images/m1-bt-statedump.png)
 
-However, at this point in time, it is not 100% clear exactly what a lot of these RTI-related structures do, and it eventually becomes easier to supplement static analysis with dynamic analysis.
+However, although this code may give the names of fields in a structure, it is not 100% clear exactly what these RTI-related structures are used for, and it eventually becomes easier to supplement static analysis with dynamic analysis.
 
 # Switching to tracing and dynamic analysis
 
@@ -106,7 +105,7 @@ The tedious back-and-forth repeats again, but I start noticing that a lot of the
 
 ![Screenshot of Info.plist]({static}/images/m1-bt-infoplist.png)
 
-... oh. Sometimes it helps to read the documentation. Reading through this plist file, we discover that it references separate pipes for "HCI", "SCO", "ACL", and "debug". I don't know what any of these terms are, but a quick poke through the Bluetooth Core specification reveals this table when describing the UART transport layer
+... oh. Sometimes it helps to read the documentation. Reading through this plist file, we discover that it references separate pipes for "HCI", "SCO", "ACL", and "debug". I don't know what any of these terms are, but a quick poke through the Bluetooth Core specification reveals this table in the section describing the UART transport layer:
 
 ![Screenshot of Bluetooth specification UART packet indicators]({static}/images/m1-bt-uartspec.png)
 
@@ -114,7 +113,7 @@ This is starting to make sense. Instead of adding a byte prefix like the UART tr
 
 The reverse engineering process proceeds until the tracer can [dump HCI commands](https://github.com/ArcaneNibble/m1n1/commit/709be6644289b33596271cdd7f2c9af52e076b9e) as well as [their corresponding responses](https://github.com/ArcaneNibble/m1n1/commit/40abf193e90079b0d04b9d9cb22cff87b718dab9). This finally results in [this Tweet](https://twitter.com/ArcaneNibble/status/1513129726516232192) showing command 0x1002 `Read_Local_Supported_Commands` in the TR and the corresponding reply in the CR. From the dumps, we can confirm that this Bluetooth adapter _does_ indeed still use standard HCI commands, just wrapped in this Apple-specific transport.
 
-At this point, we can also make reasonable guesses as to what various abbreviations in the driver codebase mean:
+After tracing data flowing through in both directions, we can finally make reasonable guesses as to what various abbreviations in the driver codebase mean:
 
 * HIA - head index A?
 * TIA - tail index A?
@@ -128,7 +127,7 @@ It's time to be brave and try driving the device ourselves with our own driver!
 
 # Prototyping a new driver
 
-In order to prototype a driver quickly, I wanted to be able to use a high-level programming language that's extremely convenient for rapid prototyping, such as Python. Most of the other Asahi experimentation is already done with Python scripts running on a separate PC interfacing with m1n1. However, there weren't any examples of how to set up a PCIe device under m1n1, and I didn't want to invest a lot of effort into making that work. Fortunately, Linux already has functionality for writing userspace PCIe drivers — [VFIO](https://docs.kernel.org/driver-api/vfio.html). VFIO is well-known for allowing "passthrough" of PCIe devices from a hypervisor host to virtual machines, but it also allows safe (IOMMU-protected) access to PCIe devices from userspace.
+In order to prototype a driver quickly, I wanted to be able to use a high-level programming language that's extremely convenient for rapid prototyping, such as Python. Most of the other Asahi experimentation is already done with Python scripts running on a separate computer interfacing with m1n1. However, there weren't any examples of how to set up a PCIe device under m1n1, and I didn't want to invest a lot of effort into making that work. Fortunately, Linux already has functionality for writing userspace PCIe drivers — [VFIO](https://docs.kernel.org/driver-api/vfio.html). VFIO is well-known for allowing "passthrough" of PCIe devices from a hypervisor host to virtual machines, but it also allows safe (IOMMU-protected) access to PCIe devices from userspace.
 
 I start putting together a Python skeleton to poke BAR registers interactively while booted into Linux. However, I quickly discover an issue — accessing some registers (e.g. `CHIPCOMMON_CHIP_STATUS`) works, but accessing most registers cause _the entire machine_ to lock up and eventually watchdog reboot. This happens even if I access them in the exact same sequence as macOS does. Much frustration ensues.
 
@@ -136,7 +135,7 @@ Eventually, I start using the debugging technique of "what information do I have
 
 ![Screenshot of Ghidra showing AppleConvergedPCI::setupVendorSpecificConfigGated]({static}/images/m1-bt-configspace.png)
 
-PCIe config space. Of course. Since the PCIe configuration space is not part of a BAR, none of my tracing captured any of it. It's also the perfect location to put magic pokes that completely change how the rest of the chip behaves. This also explains what the magic numbers in `ACIPCChip43XX` are for — they are written into the configuration space to change what is mapped into the memory BARs. This also explains why not setting them up causes a system lockup — accessing an invalid/unmapped address. Pasting these pokes into my Python driver and... success! I can read/write registers without crashing. From there, it's a [very quick bit of code](https://github.com/ArcaneNibble/m1-bluetooth-prototype/commit/5c243d6077ed3ab7ecc8c6f5cfb27b81b9899c3f) until I can successfully boot the firmware.
+PCIe config space. Of course. Since the PCIe configuration space is not part of a BAR, none of my tracing captured it. It's also the perfect location to put magic pokes that completely change how the rest of the chip behaves. This also explains what the magic numbers in `ACIPCChip43XX` are for — they are written into the configuration space to change what is mapped into the memory BARs. This also explains why not setting them up causes a system lockup — accessing an invalid/unmapped address. Pasting these pokes into my Python driver and... success! I can read/write registers without crashing. From there, it's a [very quick bit of code](https://github.com/ArcaneNibble/m1-bluetooth-prototype/commit/5c243d6077ed3ab7ecc8c6f5cfb27b81b9899c3f) until I can successfully boot the firmware.
 
 Once the firmware is booted, I just need to set up the RTI "context" data structure, and then I can transition the firmware into state 1 followed by state 2 where it should be running (code [here](https://github.com/ArcaneNibble/m1-bluetooth-prototype/commit/2a2e5d26e4a93cb2ca5706cfa5797596459e8d49)).
 
@@ -150,7 +149,7 @@ After getting HCI commands working via an interactive shell, the next logical st
 
 Quickly hooking this together yielded [this Tweet](https://twitter.com/ArcaneNibble/status/1513478297740406785) showing the M1 laptop scanning and detecting an Android phone, with everything already correctly plumbed through all the way to the GUI layer.
 
-At this point, I attempt to support SCO data, but it uses a different doorbell mechanism and immediately causes an interrupt storm. I set this aside and decide to come back to it later (this is always a valid approach). I instead decide to tackle ACL data, which requires me to figure out how the sharing of completion rings works. I try to test using command 0x1802 `Write_Loopback_Mode`, only to discover that it appears to be broken or otherwise somehow crashes the firmware. Undeterred, I decided to just plow forwards and integrate ACL experiments directly into the existing VHCI logic.
+At this point, I attempt to support SCO data, but it uses a different doorbell mechanism and immediately causes an interrupt storm. I set this aside and decide to come back to it later (this is always a valid approach!). I instead decide to tackle ACL data, which requires me to figure out how the sharing of completion rings works. I try to test using command 0x1802 `Write_Loopback_Mode`, only to discover that it appears to be broken or otherwise somehow crashes the firmware. Undeterred, I decided to just plow forwards and integrate ACL experiments directly into the VHCI logic.
 
 While experimenting with this, I compared against multiple traces I had captured from macOS and eventually discovered the following major quirk: when ACL data to the host fits inside the completion ring, the buffer passed in the transfer ring is not used. The buffer in the transfer ring is only used when the data is too large to fit directly inside the completion ring. (There are flag bits in the descriptor that indicate this.) Once this was [correctly handled](https://github.com/ArcaneNibble/m1-bluetooth-prototype/commit/3d282b88e1a606c60723ea398b20635d5028d048), I posted [this Tweet](https://twitter.com/ArcaneNibble/status/1513804983308746753) where I successfully sent a file via OBEX to a phone.
 
