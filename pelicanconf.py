@@ -24,7 +24,8 @@ AUTHOR_FEED_RSS = None
 # Social widget
 SOCIAL = (('Twitter', 'https://twitter.com/ArcaneNibble'),
           ('GitHub', 'https://github.com/ArcaneNibble/'),
-          ('Email', 'mailto:rqou@berkeley.edu', 'envelope'))
+          ('Email', 'mailto:rqou@berkeley.edu', 'envelope'),
+          ('Ko-fi', 'https://ko-fi.com/arcanenibble', 'dollar'))
 
 DEFAULT_PAGINATION = False
 
