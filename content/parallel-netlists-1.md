@@ -79,7 +79,7 @@ To make all of this work, we finally need a work-stealing thread pool. The [`wor
 
 A cursory manual inspection of small inputs/outputs seems to indicate that the algorithm is correct (after fixing some bugs). Larger netlists also don't hit any `unwrap` failures, which is also a good sign. Fearless concurrency! However, performance is a different story:
 
-[DATA GRAPH]
+![Data graph]({static}/images/netlist-phase1-rwlock.png)
 
 Performance doesn't scale beyond two cores. Hmm.
 
@@ -106,7 +106,7 @@ I also changed the code so that it aborts and retries later (rather than blockin
 
 # Final part 1 performance
 
-[DATA GRAPH]
+![Data graph]({static}/images/netlist-phase1-slab.png)
 
 This has fixed the worst of the scaling bottleneck.
 
