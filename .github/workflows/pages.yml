@@ -27,8 +27,8 @@ jobs:
           source venv/bin/activate
           make publish
 
-      - uses: actions/upload-pages-artifact@v1.0.7
+      - uses: actions/upload-pages-artifact@v3
         with:
           path: "output/"
 
-      - uses: actions/deploy-pages@v1.2.3
+      - uses: actions/deploy-pages@v4
