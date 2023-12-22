@@ -5,8 +5,31 @@
    width="1800"
    version="1.1"
    id="svg33131"
+   sodipodi:docname="netlist-with-arc-rwlock.svg"
+   inkscape:version="1.2.2 (b0a84865, 2022-12-01)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns="http://www.w3.org/2000/svg"
    xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview42808"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     showgrid="false"
+     inkscape:zoom="0.31902208"
+     inkscape:cx="619.07941"
+     inkscape:cy="394.95699"
+     inkscape:window-width="1512"
+     inkscape:window-height="916"
+     inkscape:window-x="0"
+     inkscape:window-y="38"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg33131" />
   <defs
      id="defs33135" />
   <g
@@ -36238,13 +36261,13 @@
   <text
      xml:space="preserve"
      style="font-size:64px;font-family:Arial;-inkscape-font-specification:Arial;text-align:center;text-anchor:middle;fill:#ff0000"
-     x="781.4137"
-     y="311.00525"
+     x="797.08661"
+     y="307.87067"
      id="text42187"><tspan
        id="tspan42185"
-       x="781.4137"
-       y="311.00525"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:64px;font-family:'Comic Sans MS';-inkscape-font-specification:'Comic Sans MS';fill:#ff0000">Arc&lt;RwLock&lt;       &gt;</tspan></text>
+       x="797.08661"
+       y="307.87067"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:64px;font-family:'Comic Sans MS';-inkscape-font-specification:'Comic Sans MS';fill:#ff0000">Arc&lt;RwLock&lt;       &gt;&gt;</tspan></text>
   <text
      xml:space="preserve"
      style="font-size:64px;font-family:Arial;-inkscape-font-specification:Arial;text-align:center;text-anchor:middle;fill:#ff0000"
@@ -36254,7 +36277,7 @@
        id="tspan42185-7"
        x="331.58203"
        y="441.90076"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:64px;font-family:'Comic Sans MS';-inkscape-font-specification:'Comic Sans MS';fill:#ff0000">Arc&lt;RwLock&lt;       &gt;</tspan></text>
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:64px;font-family:'Comic Sans MS';-inkscape-font-specification:'Comic Sans MS';fill:#ff0000">Arc&lt;RwLock&lt;       &gt;&gt;</tspan></text>
   <text
      xml:space="preserve"
      style="font-size:64px;font-family:Arial;-inkscape-font-specification:Arial;text-align:center;text-anchor:middle;fill:#ff0000"
@@ -36264,17 +36287,17 @@
        id="tspan42185-8"
        x="779.06897"
        y="626.604"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:64px;font-family:'Comic Sans MS';-inkscape-font-specification:'Comic Sans MS';fill:#ff0000">Arc&lt;RwLock&lt;       &gt;</tspan></text>
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:64px;font-family:'Comic Sans MS';-inkscape-font-specification:'Comic Sans MS';fill:#ff0000">Arc&lt;RwLock&lt;       &gt;&gt;</tspan></text>
   <text
      xml:space="preserve"
      style="font-size:64px;font-family:Arial;-inkscape-font-specification:Arial;text-align:center;text-anchor:middle;fill:#ff0000"
-     x="800.19586"
-     y="977.71301"
+     x="806.46503"
+     y="980.8476"
      id="text42187-8"><tspan
        id="tspan42185-3"
-       x="800.19586"
-       y="977.71301"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:64px;font-family:'Comic Sans MS';-inkscape-font-specification:'Comic Sans MS';fill:#ff0000">Arc&lt;RwLock&lt;       &gt;</tspan></text>
+       x="806.46503"
+       y="980.8476"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:64px;font-family:'Comic Sans MS';-inkscape-font-specification:'Comic Sans MS';fill:#ff0000">Arc&lt;RwLock&lt;       &gt;&gt;</tspan></text>
   <text
      xml:space="preserve"
      style="font-size:64px;font-family:Arial;-inkscape-font-specification:Arial;text-align:center;text-anchor:middle;fill:#ff0000"
@@ -36284,5 +36307,5 @@
        id="tspan42185-2"
        x="1319.3141"
        y="344.91193"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:64px;font-family:'Comic Sans MS';-inkscape-font-specification:'Comic Sans MS';fill:#ff0000">Arc&lt;RwLock&lt;       &gt;</tspan></text>
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:64px;font-family:'Comic Sans MS';-inkscape-font-specification:'Comic Sans MS';fill:#ff0000">Arc&lt;RwLock&lt;       &gt;&gt;</tspan></text>
 </svg>
