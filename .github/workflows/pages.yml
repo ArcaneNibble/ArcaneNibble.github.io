@@ -26,9 +26,10 @@ jobs:
         run: |
           source venv/bin/activate
           make publish
+          cp -r --dereference --no-preserve=mode,ownership output/ output2/
 
       - uses: actions/upload-pages-artifact@v3.0.0
         with:
-          path: "output/"
+          path: "output2/"
 
       - uses: actions/deploy-pages@v4.0.2
