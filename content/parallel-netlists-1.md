@@ -1,10 +1,10 @@
 Title: Parallel-capable netlist data structures, part 1
-Date: 2023-01-01
-Status: draft
+Date: 2023-12-27
+Summary: I talk about learning to write parallel algorithms while dropping major hints about a new project.
 
-For the past &lt;indeterminate time&gt;, I've been trying to work on an EDA-related tool (formal announcement any moment now...) whilst trying to recover from severe, debilitating burnout. This has involved playing around with Rust on "real computers" (i.e. not on microcontrollers) and learning how to write parallel algorithms. This is Part 1 of my learning progress.
+For the past &lt;indeterminate time&gt;, I've been trying to work on an EDA-related tool (formal announcement coming any moment now...) whilst trying to recover from severe, debilitating burnout. This has involved playing around with Rust on "real computers" (i.e. not on microcontrollers) and learning how to write parallel algorithms. This is Part 1 of my learning progress.
 
-Given that I've (in theory) studied all sorts of academic material about algorithms, concurrency, computer architecture, etc. etc., this should be easy, right? Right...?
+Given that I've (in theory) studied all sorts of academic material about algorithms, concurrency, computer architecture, etc. etc., this should be easy, right? Riiiiiiiight...?
 
 Let's find out!
 
@@ -16,7 +16,7 @@ All benchmarks were run on an Apple M1 Max.
 
 [Yosys](https://github.com/YosysHQ/yosys) is currently the standard open-source EDA framework. It works quite well for the synthesis and formal verification use cases. However, I wanted a place to freely experiment with... other algorithms (<small>*wink*</small>).
 
-Yosys RTLIL data structures are also not currently multithreaded, but I expect multithreading to be critical for handling the... large netlists that my tool would be working with.
+Yosys RTLIL data structures are also not currently multithreaded, but I predict that multithreading will be critical for handling the... large netlists that my tool would be working with.
 
 With its advertised "fearless concurrency," a natural choice of programming language for this project is Rust.
 
@@ -28,7 +28,7 @@ The structure that I ended up choosing was:
 
 * Cells contain:
     * a type
-    * a fixed-size array of (nullable) references to wires
+    * a fixed-size array of (nullable) references to wires (which is actually implemented as a non-fixed-size `Vec`)
 * Wires contain:
     * a list of cells driving the wire
     * a list of cells being driven by the wire
@@ -112,4 +112,4 @@ This has fixed the worst of the scaling bottleneck.
 
 # Final remarks
 
-Manually acquiring locks and messing with the netlist is very error-prone and cumbersome. I need to figure out a better way to build abstractions for this.
+Manually acquiring locks and messing with the netlist is very error-prone and cumbersome. I need to figure out a better way to build APIs for this.
