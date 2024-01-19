@@ -37,7 +37,7 @@ Through discussing this API surface with a friend, we have collectively come up 
 
     This commits us to the restriction of "all algorithms that the netlist API helps you with must be 'cautious' as defined in the Pingali et al. paper."
 
-    Because many (and likely most of the ones we will need) operations on netlists can be rewritten into this form, I will consider this a perfectly acceptable trade-off in exchange for being able to speculatively execute operations concurrently.
+    Because many (and likely most of the ones we will need) operations on netlists can indeed be rewritten into this form, I will consider this a perfectly acceptable trade-off in exchange for being able to speculatively execute operations concurrently.
 
     With this split, it also becomes possible to defer the "read-write" phase to a later time when implementing an "ordered" algorithm. The following is one way to do that:
 
@@ -112,14 +112,14 @@ In a `sharded_slab`, it is possible for another thread to attempt to free an ite
 
 It seems like trying to hang on to *both* the `Entry` *and* `RwLock*Guard` objects should work in theory, but the limitations of the Rust borrow checker prevent this (the `RwLock` guard lifetime needs to be at least as long as the `Entry` lifetime, but this would result in a self-referential struct).
 
-The Kulkarni et al. paper also happens to mention that freeing entries should only happen when a write operation commits. I had not considered that I would need to actually enforce this 
+The Kulkarni et al. paper also happens to mention that freeing entries should only happen when a write operation commits. I had not considered that I would need to actually enforce this.
 
-It looks like I need to actually start implementing all of the data structures I need "for real" instead of trying to quickly duct-tape together existing pieces that only approximately do what I want.
+Solving these problems seems like it will require tighter integration between our locking rules and our memory allocator. It looks like I need to actually start implementing all of the data structures I need "for real" instead of trying to quickly duct-tape together existing pieces that only approximately do what I want.
 
 However, at this point, it would appear that I have a decent idea what exactly I would even need to implement:
 
 * Netlist nodes are stored in an arena, ["essentially a way to group up allocations that are expected to have the same lifetime"](https://manishearth.github.io/blog/2021/03/15/arenas-in-rust/)
-* There needs to be some kind of integration with per-node reader-writer locks
+* The framework needs to somehow own/control/manage its own per-node reader-writer locks
     * This is needed for the aforementioned object freeing issue
     * The framework needs to know about locks in order to deal with algorithms requiring order
     * Allowing the netlist framework to have visibility into locks potentially allows for more advanced work scheduling in the future
@@ -130,3 +130,25 @@ However, at this point, it would appear that I have a decent idea what exactly I
 
 # Okay, _now_ let's build it!
 
+## Memory allocator
+
+The lowest-level part of building everything "for real" is memory allocation. The internal implementation of the `sharded_slab` crate is inspired by a technical report from Microsoft Research entitled ["Mimalloc: Free List Sharding in Action"](https://www.microsoft.com/en-us/research/uploads/prod/2019/06/mimalloc-tr-v1.pdf).
+
+I spent quite some time pouring over this paper. I am not very good at serializing these thoughts into a blog post, so here is a brain dump:
+
+* We don't need a general-purpose malloc, only a closed set of types of known sizes, so we don't need the `pages_direct`/`pages` lists.
+* Q: Why does Mimalloc need three free lists, but `sharded_slab` only has _two_? A: With the `sharded_slab` implementation, the "deterministic heartbeat" functionality is lost.
+    * What is Mimalloc amortizing with its deterministic heartbeat?
+        * Batching frees for dynamic languages -- not something that we need
+        * Returning memory to the operating system -- unclear whether or not we will be doing that
+        * Collecting the thread free list
+        * Collecting the _thread delayed free_ blocks, thus moving pages off of the _full list_
+* Q: What if we don't amortize with a deterministic heartbeat? What if we instead _only_ perform deferred operations _after_ a segment completely runs out of space?
+    * A: I don't have any proper proof of bounds here, but gut-feeling/intuition seems to be saying that it probably will not be big-O worse. (I tried to think of any possible pathological way to cause this style of memory allocator to end up in a situation of "each netlist node has a netlist's worth of wasted space between it and the next node" but could not come up with a way to do that.) However, not having a deterministic heartbeat can make the variance in allocation time much worse, which seems like it's probably by itself undesirable.
+* Q: What is the Mimalloc paper talking about when it mentions the `DELAYED` vs `DELAYING` states? Why do we need that?
+    * First of all, this part of the paper doesn't match the actual published code. The code has at least one further optimization: a block will not be put on the _thread delayed free_ list if another block in the same page is already on said list. This is because only one block per page is needed in order for the owning thread to eventually realize that the page isn't full anymore.
+    * A: I don't fully understand this, but it has to do with thread termination. When a thread terminates in Mimalloc, its owned pages are somehow "given" to another thread or something. Our implementation *does* need to figure out its thread lifetime story at some point though.
+
+Okay, let's hack together the fast path. [Here](https://github.com/ArcaneNibble/SiCl4/tree/00f57b026bcc9cabcf8296977933610aad92d2b5) we go! There's not much to say about this, it's just writing unsafe Rust code as if it were C-like.
+
+But wow, this is an awful mess of TODOs and pointer casting.
