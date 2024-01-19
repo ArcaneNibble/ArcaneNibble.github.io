@@ -151,4 +151,15 @@ I spent quite some time pouring over this paper. I am not very good at serializi
 
 Okay, let's hack together the fast path. [Here](https://github.com/ArcaneNibble/SiCl4/tree/00f57b026bcc9cabcf8296977933610aad92d2b5) we go! There's not much to say about this, it's just writing unsafe Rust code as if it were C-like.
 
-But wow, this is an awful mess of TODOs and pointer casting.
+But wow, this is an awful mess of pointer casting, TODOs, FIXMEs, XXXs, and general jank.
+
+### Fixing the "complicated Rust stuff"
+
+The following things need to be fixed immediately:
+
+1. Having an invariant "arena" lifetime as described in [this article](https://manishearth.github.io/blog/2021/03/15/arenas-in-rust/)
+2. In the meantime, figuring out the correct variance story around `T`
+3. ... which, while we're at it, requires figuring out all of the other things mentioned in the [`PhantomData` nomicon article](https://doc.rust-lang.org/nomicon/phantom-data.html): drop check and `Send`/`Sync`
+4. ... which thus requires figuring out the thread creation / termination story
+
+Rust: forcing you to design APIs properly!
