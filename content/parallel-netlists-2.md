@@ -160,6 +160,31 @@ The following things need to be fixed immediately:
 1. Having an invariant "arena" lifetime as described in [this article](https://manishearth.github.io/blog/2021/03/15/arenas-in-rust/)
 2. In the meantime, figuring out the correct variance story around `T`
 3. ... which, while we're at it, requires figuring out all of the other things mentioned in the [`PhantomData` nomicon article](https://doc.rust-lang.org/nomicon/phantom-data.html): drop check and `Send`/`Sync`
-4. ... which thus requires figuring out the thread creation / termination story
+4. ... which (among other things) requires figuring out the thread creation / termination story
 
 Rust: forcing you to design APIs properly!
+
+So, how *do* we want our framework to work? Have another brain dump:
+
+* Graph node objects must be `Send`. This is a hard requirement, as we will be (potentially) processing data across different threads. The `T: Send` bound that the hacked-together code has is correct and is the same as what Rust requires for e.g. `Arc<Mutex<T>>`.
+* The "root" heap object is somehow used to create per-thread state, which is then used to allocate/free data. This is _currently_ `SlabAlloc` and `SlabThreadState`, but _these types are definitely borked_ in the hack implementation.
+* The general program flow envisioned is something like:
+    1. Run a core algorithm, across every CPU core
+    2. Wait for everything to finish
+    3. Threads terminate when there is no more work
+    4. Possibly(???) optimize memory usage/fragmentation/balancing-across-threads (is this useful at all?)
+    5. Run the next core algorithm
+* Does the "root" object need to be `Sync`? If it is, then threads can freely spawn subthreads with their own heap shards. If it is not, then one initial thread *must* set up all the necessary shards before launching work threads.
+* Does the "root" object need to be `Send`? As far as I can tell, no. But it probably should be.
+* Does the per-thread object need to be `Sync`? It **CANNOT** be. The whole point of it is that it belongs to one specific thread.
+* Does the per-thread object need to be `Send`? If the "root" object is not `Sync`, this object must be `Send` (or else it wouldn't be possible to give it to worker threads). Otherwise, no (e.g. if using OS TLS primitives?).
+* Do node read/write guard objects need to be `Send`/`Sync`? They again cannot be `Sync`, as they belong to one specific thread. Having them be `Send` feels somewhat wrong, but isn't blatantly unsafe (e.g. a graph algorithm creates subthreads and gives them the guard object)?
+* Guard objects cannot outlive segments/pages.
+* Nothing can outlive the "root" object.
+* In general, _what are we actually trying to check_ wrt object lifetimes?
+    * Don't cause memory safety issues when deleting nodes
+    * Prevent graph manipulating code from stashing references/guards for graph nodes and accessing them after the algorithm should have finished
+        * i.e. so that we can safely do the "optimize/defragment memory" operation
+* We fundamentally do not have good enough intuition on the behavior of `&'a T` vs `T<'a>` vs `&'a T<'b>`
+    * We need good intuition about this in order to understand whether or not we should be covariant or invariant over `T`, especially since we will be using interior mutability.
+* We don't understand the nomicon chapter on `PhantomData` drop check at all.
