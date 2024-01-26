@@ -166,7 +166,7 @@ Rust: forcing you to design APIs properly!
 
 So, how *do* we want our framework to work? Have another brain dump:
 
-* Graph node objects must be `Send`. This is a hard requirement, as we will be (potentially) processing data across different threads. The `T: Send` bound that the hacked-together code has is correct and is the same as what Rust requires for e.g. `Arc<Mutex<T>>`.
+* <strike>Graph node objects must be `Send`. This is a hard requirement, as we will be (potentially) processing data across different threads. The `T: Send` bound that the hacked-together code has is correct and is the same as what Rust requires for e.g. `Arc<Mutex<T>>`.</strike> Graph node objects must be both `Send` and `Sync`. `Send` is required because we will be (potentially) processing data across different threads. `Sync` is *also* required because multiple read guards can exist at the same time, across separate threads, meaning there can be multiple `&` references at the same time. There can still only be one `&mut` reference at once, and any potential _interior_ mutability is the responsibility of the node types to make safe, not the allocator. 
 * The "root" heap object is somehow used to create per-thread state, which is then used to allocate/free data. This is _currently_ `SlabAlloc` and `SlabThreadState`, but _these types are definitely borked_ in the hack implementation.
 * The general program flow envisioned is something like:
     1. Run a core algorithm, across every CPU core
@@ -188,3 +188,59 @@ So, how *do* we want our framework to work? Have another brain dump:
 * We fundamentally do not have good enough intuition on the behavior of `&'a T` vs `T<'a>` vs `&'a T<'b>`
     * We need good intuition about this in order to understand whether or not we should be covariant or invariant over `T`, especially since we will be using interior mutability.
 * We don't understand the nomicon chapter on `PhantomData` drop check at all.
+
+Several days of hacking later, we now have [this](https://github.com/ArcaneNibble/SiCl4/tree/63f312a3cae5eb250fc653a9f668286836883105)!
+
+### What did we learn?
+
+It's hard to transfer _intuition_ across brains, but here's another brain dump:
+
+* As updated above, `T` needs to be *both* `Send` and `Sync`.
+* We've created a "root" object that is both `Send` and `Sync`.
+    * **However**, as soon as `new_thread` is ever called on it, the object becomes pinned in memory. This inherently has to happen: segments contain a pointer back to the per-thread state, and so the per-thread state cannot move anymore. This doesn't actually affect whether or not the root object is `Send` though: transferring the ownership (without moving it) should still work without issue (although we haven't actually tested whether Rust will allow us to _write_ code that does anything like that).
+* The variance on `T` seems like it _should_ be covariance. The nomicon states "as soon as you try to stuff them in something like a mutable reference, they inherit invariance and you're prevented from doing anything bad." The following is a worked example of how that is supposed to work:
+
+We have code that, oversimplified, will eventually look like the following:
+
+```rust
+struct SlabThreadShard<'arena, T> { /* stuff */ }
+struct LockGuard<'arena, T> { /* stuff */ }
+impl<'arena, T> SlabThreadShard<'arena, T> {
+    fn lock_an_object(&'arena self, obj: /* some kind of ref */) -> LockGuard<'arena, T> {
+        /* impl */
+    }
+}
+impl<'arena, T> Deref for LockGuard<'arena, T> {
+    type Target = T;
+    
+    fn deref<'guard>(&'guard self) -> &'guard T { /* impl */ }
+}
+impl<'arena, T> DerefMut for LockGuard<'arena, T> {
+    fn deref_mut<'guard>(&'guard mut self) -> &'guard mut T { /* impl */ }
+}
+// users cannot access data outside of the lifetime of 'guard
+// 'guard cannot be longer than 'arena
+```
+
+In the `deref_mut` function, if we let `T = &'a U`, the function signature becomes
+
+```rust
+fn deref_mut<'guard>(&'guard mut self) -> &'guard mut &'a U
+```
+
+Because `&'a mut T` is _invariant_ over `T`, `&'guard mut &'a U` forces anything that might be stored to be *exactly* `&'a U`.
+
+However, I **still haven't tested any of this**. There might still be something I've missed.
+
+* I still don't understand drop check and haven't gotten around to implementing any code to support dropping yet.
+* The most useful articles for building my intuition about memory ordering were:
+    * [https://preshing.com/20120710/memory-barriers-are-like-source-control-operations/](https://preshing.com/20120710/memory-barriers-are-like-source-control-operations/)
+    * [https://preshing.com/20120913/acquire-and-release-semantics/](https://preshing.com/20120913/acquire-and-release-semantics/) (specifically the diagrams with the square brackets indicating across where memory operations _cannot_ move)
+    * [https://preshing.com/20130823/the-synchronizes-with-relation/](https://preshing.com/20130823/the-synchronizes-with-relation/) explaining synchronizes-with.
+        * This allocator additionally depends on the rules around _release sequences_, but the explanation [here](https://en.cppreference.com/w/cpp/atomic/memory_order) finally makes sense after understanding everything else.
+        * [This](https://stackoverflow.com/questions/38565650/what-does-release-sequence-mean) SO question helped to clarify even further.
+* Our thread creation / termination story is as follows: The heap can only support a hardcoded maximum number of threads. If a thread terminates, nothing happens to any of its memory and none of it is freed. Other threads can keep accessing nodes that exist on its pages. Other threads can also free nodes that exist on the terminated thread's pages, but nothing will ever come around to sweep/collect them anymore. When a thread is created, the code first tries to find an existing "abandoned" set of memory and gives this new thread that memory (only creating a totally new thread shard if that fails). With the envisioned execution model, this should be totally fine -- we will grab `n` threads, do stuff, drop all `n` threads, and then pick up *the same* `n` thread shards (and associated memory) the next time we do stuff.
+
+## Netlist and object locking
+
+After building the allocator, we need to build this next.
