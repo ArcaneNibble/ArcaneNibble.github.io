@@ -244,3 +244,21 @@ However, I **still haven't tested any of this**. There might still be something 
 ## Netlist and object locking
 
 After building the allocator, we need to build this next.
+
+I'm quite familiar with atomic operations and locking (other than memory ordering), so this is quite straightforward after all of the struggles of the previous section. [Here](https://github.com/ArcaneNibble/SiCl4/tree/98c9458e4faf31738c331aae4d8873682d4ec079) we go, and [here](https://github.com/ArcaneNibble/SiCl4/tree/e62bafcfa2220729a2e7fba5e29cd0ba7fe08c79) we have a port of the previous benchmark.
+
+While writing this, I noticed the following concerns:
+
+* Guards aren't required to outlive the per-thread handle. This seems `// XXX XXX XXX BAD BAD BAD ???`, but I need to explain _why_.
+* I am using a *nasty* trick to deal with attempting to get a lock on an object that has been deallocated. It is not clear to me whether or not this is UB according to any theoretical memory models (it definitely does end up mixing atomic (read/write lock guard) and non-atomic (free list) access to the same address) or in practice. This definitely needs to be fixed (or at least reasoned through).
+* I don't have a full intuitive understanding of Rust's UB rules regarding summoning up `mut` pointers/references derived from a `&` reference.
+* Variance _really_ matters here as netlist cells/wires... have lifetime params. I still haven't tried intentionally breaking it (although doing the "normal/intended" thing is accepted).
+* This new API has *way* less locking-related noise compared to the previous duct-tape attempts. This is definitely better.
+
+## New benchmarks
+
+TODO
+
+## Going forward
+
+Now I need to actually build out the "Galois system"-inspired graph stuff...
