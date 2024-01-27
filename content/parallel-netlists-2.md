@@ -255,9 +255,32 @@ While writing this, I noticed the following concerns:
 * Variance _really_ matters here as netlist cells/wires... have lifetime params. I still haven't tried intentionally breaking it (although doing the "normal/intended" thing is accepted).
 * This new API has *way* less locking-related noise compared to the previous duct-tape attempts. This is definitely better.
 
+Let's fix some of these:
+
+Surprisingly to me at first, as far as I can tell there is no issue with having read/write guards outlive the heap thread shard. This is because the heap thread shard controls the ability to perform *allocator* activity (i.e. allocating and freeing), whereas the read/write guards control the ability to perform *netlist content* activity (i.e. scribbling all over graph nodes).
+
+... actually, that makes perfect sense now that it is all spelled out. Once you've gotten memory from e.g. `malloc`, you are free to do whatever you want as far as the heap is concerned. The heap only needs to protect _itself_ from concurrency issues, and you can't allocate/free anything if you don't have a heap shard.
+
+Which means that I should probably figure out how to explicitly spell out what the coupling I _actually_ need is:
+
+* the ability to deallocate through a write guard. We are able to do this because of that huge hack involving overlaying the free list next pointer with the block generation counter. We know that the backing segment itself cannot disappear.
+
+* after deallocating, the ability to logically invalidate all pointers to the node. The way we've done it here also does not require acquiring write access to any graph nodes that might reference the deleted node.
+
+This is good intuition to have going forwards!
+
+Incidentally, I also fixed a bunch of coercions to `*mut`.
+
 ## New benchmarks
 
-TODO
+TODO put a graph here
+
+Some observations:
+
+* This implementation completely beats the "slap `Arc<RwLock<>>` everywhere" solution across all tested cases
+* Our single-threaded performance beats the off-the-shelf `sharded_slab` and `RwLock` performance
+* With multiple threads but a tiny netlist, we perform worse than the `sharded_slab` implementation. It might be good to investigate why, although it might not matter at this scale.
+* At larger netlist sizes, we start to perform _significantly_ better, and this continues to scale up as we increase threads (although not linearly).
 
 ## Going forward
 
