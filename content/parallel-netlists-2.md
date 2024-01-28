@@ -1,6 +1,6 @@
 Title: Parallel-capable netlist data structures, part 2
-Date: 2024-01-01
-Summary: TODO TODO TODO
+Date: 2024-01-28
+Summary: Sometimes reinventing the wheel pays off...
 Status: draft
 
 # Issues with the current code
@@ -142,12 +142,12 @@ I spent quite some time pouring over this paper. I am not very good at serializi
         * Batching frees for dynamic languages -- not something that we need
         * Returning memory to the operating system -- unclear whether or not we will be doing that
         * Collecting the thread free list
-        * Collecting the _thread delayed free_ blocks, thus moving pages off of the _full list_
+        * Collecting the _thread delayed free_ blocks, thus moving pages off of the _full list_. This one is **really** important. Although the idea is conceptually very simple (do not waste time searching for available blocks in pages that are completely full), the introduction of the _full list_ optimization significantly increases the engineering complexity of the allocator and required wrapping my head around *far* more complexity than without it.
 * Q: What if we don't amortize with a deterministic heartbeat? What if we instead _only_ perform deferred operations _after_ a segment completely runs out of space?
     * A: I don't have any proper proof of bounds here, but gut-feeling/intuition seems to be saying that it probably will not be big-O worse. (I tried to think of any possible pathological way to cause this style of memory allocator to end up in a situation of "each netlist node has a netlist's worth of wasted space between it and the next node" but could not come up with a way to do that.) However, not having a deterministic heartbeat can make the variance in allocation time much worse, which seems like it's probably by itself undesirable.
 * Q: What is the Mimalloc paper talking about when it mentions the `DELAYED` vs `DELAYING` states? Why do we need that?
     * First of all, this part of the paper doesn't match the actual published code. The code has at least one further optimization: a block will not be put on the _thread delayed free_ list if another block in the same page is already on said list. This is because only one block per page is needed in order for the owning thread to eventually realize that the page isn't full anymore.
-    * A: I don't fully understand this, but it has to do with thread termination. When a thread terminates in Mimalloc, its owned pages are somehow "given" to another thread or something. Our implementation *does* need to figure out its thread lifetime story at some point though.
+    * A: I don't fully understand this, but it has to do with thread termination. When a thread terminates in Mimalloc, its owned pages are somehow "given" to another thread or something. We will probably just... not do that, but our implementation *does* still need to figure out its thread lifetime story at some point though.
 
 Okay, let's hack together the fast path. [Here](https://github.com/ArcaneNibble/SiCl4/tree/00f57b026bcc9cabcf8296977933610aad92d2b5) we go! There's not much to say about this, it's just writing unsafe Rust code as if it were C-like.
 
@@ -166,14 +166,14 @@ Rust: forcing you to design APIs properly!
 
 So, how *do* we want our framework to work? Have another brain dump:
 
-* <strike>Graph node objects must be `Send`. This is a hard requirement, as we will be (potentially) processing data across different threads. The `T: Send` bound that the hacked-together code has is correct and is the same as what Rust requires for e.g. `Arc<Mutex<T>>`.</strike> Graph node objects must be both `Send` and `Sync`. `Send` is required because we will be (potentially) processing data across different threads. `Sync` is *also* required because multiple read guards can exist at the same time, across separate threads, meaning there can be multiple `&` references at the same time. There can still only be one `&mut` reference at once, and any potential _interior_ mutability is the responsibility of the node types to make safe, not the allocator. 
+* <strike>Graph node objects must be `Send`. This is a hard requirement, as we will be (potentially) processing data across different threads. The `T: Send` bound that the hacked-together code has is correct and is the same as what Rust requires for e.g. `Arc<Mutex<T>>`.</strike> Graph node objects must be both `Send` and `Sync`. `Send` is required because we will be (potentially) processing data across different threads. `Sync` is *also* required because multiple read guards can exist at the same time, across separate threads, meaning there can be multiple `&` references at the same time. There can still only be one `&mut` reference at once, and any potential _interior_ mutability is the responsibility of the node types to make safe, not the allocator/locking.
 * The "root" heap object is somehow used to create per-thread state, which is then used to allocate/free data. This is _currently_ `SlabAlloc` and `SlabThreadState`, but _these types are definitely borked_ in the hack implementation.
 * The general program flow envisioned is something like:
-    1. Run a core algorithm, across every CPU core
+    1. Run a graph algorithm, across every CPU core
     2. Wait for everything to finish
     3. Threads terminate when there is no more work
     4. Possibly(???) optimize memory usage/fragmentation/balancing-across-threads (is this useful at all?)
-    5. Run the next core algorithm
+    5. Run the next graph algorithm
 * Does the "root" object need to be `Sync`? If it is, then threads can freely spawn subthreads with their own heap shards. If it is not, then one initial thread *must* set up all the necessary shards before launching work threads.
 * Does the "root" object need to be `Send`? As far as I can tell, no. But it probably should be.
 * Does the per-thread object need to be `Sync`? It **CANNOT** be. The whole point of it is that it belongs to one specific thread.
@@ -189,7 +189,7 @@ So, how *do* we want our framework to work? Have another brain dump:
     * We need good intuition about this in order to understand whether or not we should be covariant or invariant over `T`, especially since we will be using interior mutability.
 * We don't understand the nomicon chapter on `PhantomData` drop check at all.
 
-Several days of hacking later, we now have [this](https://github.com/ArcaneNibble/SiCl4/tree/63f312a3cae5eb250fc653a9f668286836883105)!
+After thinking through all of this and several days of hacking later, we now have [this](https://github.com/ArcaneNibble/SiCl4/tree/63f312a3cae5eb250fc653a9f668286836883105)!
 
 ### What did we learn?
 
@@ -249,37 +249,41 @@ I'm quite familiar with atomic operations and locking (other than memory orderin
 
 While writing this, I noticed the following concerns:
 
-* Guards aren't required to outlive the per-thread handle. This seems `// XXX XXX XXX BAD BAD BAD ???`, but I need to explain _why_.
+* Guards aren't required to outlive the per-thread handle. This seems `// XXX XXX XXX BAD BAD BAD ???`, but I need to understand and be able to explain _why_.
 * I am using a *nasty* trick to deal with attempting to get a lock on an object that has been deallocated. It is not clear to me whether or not this is UB according to any theoretical memory models (it definitely does end up mixing atomic (read/write lock guard) and non-atomic (free list) access to the same address) or in practice. This definitely needs to be fixed (or at least reasoned through).
 * I don't have a full intuitive understanding of Rust's UB rules regarding summoning up `mut` pointers/references derived from a `&` reference.
 * Variance _really_ matters here as netlist cells/wires... have lifetime params. I still haven't tried intentionally breaking it (although doing the "normal/intended" thing is accepted).
 * This new API has *way* less locking-related noise compared to the previous duct-tape attempts. This is definitely better.
 
-Let's fix some of these:
+Let's fix some of these issues:
 
-Surprisingly to me at first, as far as I can tell there is no issue with having read/write guards outlive the heap thread shard. This is because the heap thread shard controls the ability to perform *allocator* activity (i.e. allocating and freeing), whereas the read/write guards control the ability to perform *netlist content* activity (i.e. scribbling all over graph nodes).
+Surprisingly to me at first, there is no issue with having read/write guards outlive the heap thread shard. This is because the heap thread shard controls the ability to perform *allocator* activity (i.e. allocating and freeing), whereas the read/write guards control the ability to perform *netlist content* activity (i.e. scribbling all over graph nodes).
 
 ... actually, that makes perfect sense now that it is all spelled out. Once you've gotten memory from e.g. `malloc`, you are free to do whatever you want as far as the heap is concerned. The heap only needs to protect _itself_ from concurrency issues, and you can't allocate/free anything if you don't have a heap shard.
 
-Which means that I should probably figure out how to explicitly spell out what the coupling I _actually_ need is:
+Which means that I should probably work our and explicitly spell out the coupling I _actually_ need between the allocator and the locking logic:
 
-* the ability to deallocate through a write guard. We are able to do this because of that huge hack involving overlaying the free list next pointer with the block generation counter. We know that the backing segment itself cannot disappear.
-
-* after deallocating, the ability to logically invalidate all pointers to the node. The way we've done it here also does not require acquiring write access to any graph nodes that might reference the deleted node.
+* the ability to deallocate through a write guard. We can do this whereas Rust's `RwLockWriteGuard` can't because we know that the object we are protecting came from our special heap, whereas a `RwLock<T>` can be stored anywhere and not even necessarily in a heap allocation.
+* our heap allows us to _very very carefully_ access deallocated objects, using the hack of overlaying the lock/generation counter with the free list next pointer. Not only do we know that the backing memory segment itself cannot disappear, we've also gain the ability to _logically_ invalidate old pointers to the freed node, without having to go through connected graph nodes to erase the pointers.
+* we _want_ to be able to define periods in the code where neither allocator nor netlist activity are happening. We can couple these together _on purpose_ even though there is no need to do so for safety (by adding a `PhantomData` inside the read/write guards borrowing the thread shard).
 
 This is good intuition to have going forwards!
 
-Incidentally, I also fixed a bunch of coercions to `*mut`.
+While we're fixing things, the "mixed use of atomic and non-atomic operations" problem can be fixed by... making the heap use (relaxed) atomic operations. It's still a hack and a layering violation, but it should no longer be a theoretical memory model data race UB. It also shouldn't change the generated code, as the previous store was a 64-bit pointer that should already be atomic.
+
+Incidentally, I also fixed a bunch of coercions to `*mut`, removed some unnecessary uses of `mem::transmute`, and generally should have fixed all of the Rust-level UB.
 
 ## New benchmarks
+
+We can now rerun the hacky benchmark from the previous attempt (which now very obviously doesn't test object deletion nor otherwise have particularly good invariant self-checking, but at least it'll be an apples-to-apples comparison):
 
 TODO put a graph here
 
 Some observations:
 
-* This implementation completely beats the "slap `Arc<RwLock<>>` everywhere" solution across all tested cases
-* Our single-threaded performance beats the off-the-shelf `sharded_slab` and `RwLock` performance
-* With multiple threads but a tiny netlist, we perform worse than the `sharded_slab` implementation. It might be good to investigate why, although it might not matter at this scale.
+* This implementation completely beats the "slap `Arc<RwLock<>>` everywhere" solution across all tested cases. This isn't too surprising as that implementation had tons of unnecessary work going on.
+* Our single-threaded performance beats the off-the-shelf "`sharded_slab` plus `RwLock`" performance
+* With multiple threads but a tiny netlist, we perform worse than the `sharded_slab` implementation. It might be good to investigate why, although it might not matter at this scale (we're talking milliseconds in total).
 * At larger netlist sizes, we start to perform _significantly_ better, and this continues to scale up as we increase threads (although not linearly).
 
 ## Going forward
