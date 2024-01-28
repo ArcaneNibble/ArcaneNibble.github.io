@@ -284,7 +284,7 @@ Some observations:
 * This implementation completely beats the "slap `Arc<RwLock<>>` everywhere" solution across all tested cases. This isn't too surprising as that implementation had tons of unnecessary work going on.
 * Our single-threaded performance beats the off-the-shelf "`sharded_slab` plus `RwLock`" performance
 * With multiple threads but a tiny netlist, we perform worse than the `sharded_slab` implementation. It might be good to investigate why, although it might not matter at this scale (we're talking milliseconds in total).
-* At larger netlist sizes, we start to perform _significantly_ better, and this continues to scale up as we increase threads (although not linearly).
+* At larger netlist sizes, we start to perform _significantly_ better, and this continues to scale up until we increase the number of threads to 7-8 (although not linearly).
 
 ## Going forward
 
