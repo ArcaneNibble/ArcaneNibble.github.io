@@ -141,13 +141,13 @@ I spent quite some time pouring over this paper. I am not very good at serializi
     * What is Mimalloc amortizing with its deterministic heartbeat?
         * Batching frees for dynamic languages -- not something that we need
         * Returning memory to the operating system -- unclear whether or not we will be doing that
-        * Collecting the thread free list
+        * Collecting the remote thread free lists
         * Collecting the _thread delayed free_ blocks, thus moving pages off of the _full list_. This one is **really** important. Although the idea is conceptually very simple (do not waste time searching for available blocks in pages that are completely full), the introduction of the _full list_ optimization significantly increases the engineering complexity of the allocator and required wrapping my head around *far* more complexity than without it.
-* Q: What if we don't amortize with a deterministic heartbeat? What if we instead _only_ perform deferred operations _after_ a segment completely runs out of space?
-    * A: I don't have any proper proof of bounds here, but gut-feeling/intuition seems to be saying that it probably will not be big-O worse. (I tried to think of any possible pathological way to cause this style of memory allocator to end up in a situation of "each netlist node has a netlist's worth of wasted space between it and the next node" but could not come up with a way to do that.) However, not having a deterministic heartbeat can make the variance in allocation time much worse, which seems like it's probably by itself undesirable.
+* Q: What if we don't amortize with a deterministic heartbeat? I.e. what if we instead perform local frees directly onto the one singular local free list, and _only_ perform deferred operations _after_ a thread completely runs out of local space?
+    * A: I don't have any proper proof of bounds here, but gut-feeling/intuition seems to be saying that it probably will not be big-O worse. (I tried to think of any possible pathological way to cause this style of memory allocator to end up in a situation of "each netlist node has a netlist's worth of wasted space (i.e. freed by remote threads but not reclaimed) between it and the next node" but could not come up with a way to do that unless the algorithm inherently requires that much temporary space, in which case the blame isn't on the allocator.) However, not having a deterministic heartbeat can make the variance in allocation time much worse, which seems like it's probably by itself undesirable.
 * Q: What is the Mimalloc paper talking about when it mentions the `DELAYED` vs `DELAYING` states? Why do we need that?
-    * First of all, this part of the paper doesn't match the actual published code. The code has at least one further optimization: a block will not be put on the _thread delayed free_ list if another block in the same page is already on said list. This is because only one block per page is needed in order for the owning thread to eventually realize that the page isn't full anymore.
-    * A: I don't fully understand this, but it has to do with thread termination. When a thread terminates in Mimalloc, its owned pages are somehow "given" to another thread or something. We will probably just... not do that, but our implementation *does* still need to figure out its thread lifetime story at some point though.
+    * First of all, this part of the paper doesn't match the actual published code. <strike>The code has at least one further optimization: a block will not be put on the _thread delayed free_ list if another block in the same page is already on said list. This is because only one block per page is needed in order for the owning thread to eventually realize that the page isn't full anymore.</strike> This optimization is actually given _two_ sentences in the paper which I initially overlooked. The paper still does not match the published code which contains an additional "never delayed free" state that I also don't fully understand.
+    * A: I don't fully understand this, but it has to do with thread termination. When a thread terminates in Mimalloc, its owned pages are somehow "given" to another thread or something. We will probably just... not do that, but our implementation *does* still need to figure out its thread lifetime story at some point though. Note from the future: we actually end up reinventing the entire set of state transitions used to manage the _full list_.
 
 Okay, let's hack together the fast path. [Here](https://github.com/ArcaneNibble/SiCl4/tree/00f57b026bcc9cabcf8296977933610aad92d2b5) we go! There's not much to say about this, it's just writing unsafe Rust code as if it were C-like.
 
@@ -178,16 +178,16 @@ So, how *do* we want our framework to work? Have another brain dump:
 * Does the "root" object need to be `Send`? As far as I can tell, no. But it probably should be.
 * Does the per-thread object need to be `Sync`? It **CANNOT** be. The whole point of it is that it belongs to one specific thread.
 * Does the per-thread object need to be `Send`? If the "root" object is not `Sync`, this object must be `Send` (or else it wouldn't be possible to give it to worker threads). Otherwise, no (e.g. if using OS TLS primitives?).
-* Do node read/write guard objects need to be `Send`/`Sync`? They again cannot be `Sync`, as they belong to one specific thread. Having them be `Send` feels somewhat wrong, but isn't blatantly unsafe (e.g. a graph algorithm creates subthreads and gives them the guard object)?
+* Do node read/write guard objects need to be `Send`/`Sync`? They again cannot be `Sync`, as they belong to one specific thread. Having them be `Send` <strike>feels somewhat wrong, but isn't blatantly unsafe (e.g. a graph algorithm creates subthreads and gives them the guard object)?</strike> is _conceptually_ **required**, as the way an "ordered" graph algorithm will work involves leaving graph nodes locked after its read-only phase finishes until the read-write phase eventually either commits or abandons. That can happen on an _entirely different thread_ from the read-only phase.
 * Guard objects cannot outlive segments/pages.
 * Nothing can outlive the "root" object.
 * In general, _what are we actually trying to check_ wrt object lifetimes?
     * Don't cause memory safety issues when deleting nodes
     * Prevent graph manipulating code from stashing references/guards for graph nodes and accessing them after the algorithm should have finished
         * i.e. so that we can safely do the "optimize/defragment memory" operation
-* We fundamentally do not have good enough intuition on the behavior of `&'a T` vs `T<'a>` vs `&'a T<'b>`
+* I fundamentally do not have good enough intuition on the behavior of `&'a T` vs `T<'a>` vs `&'a T<'b>`
     * We need good intuition about this in order to understand whether or not we should be covariant or invariant over `T`, especially since we will be using interior mutability.
-* We don't understand the nomicon chapter on `PhantomData` drop check at all.
+* I don't understand the nomicon chapter on `PhantomData` drop check at all.
 
 After thinking through all of this and several days of hacking later, we now have [this](https://github.com/ArcaneNibble/SiCl4/tree/63f312a3cae5eb250fc653a9f668286836883105)!
 
@@ -261,10 +261,10 @@ Surprisingly to me at first, there is no issue with having read/write guards out
 
 ... actually, that makes perfect sense now that it is all spelled out. Once you've gotten memory from e.g. `malloc`, you are free to do whatever you want as far as the heap is concerned. The heap only needs to protect _itself_ from concurrency issues, and you can't allocate/free anything if you don't have a heap shard.
 
-Which means that I should probably work our and explicitly spell out the coupling I _actually_ need between the allocator and the locking logic:
+Which means that I should probably work out and explicitly spell out the coupling I _actually_ need between the allocator and the locking logic:
 
 * the ability to deallocate through a write guard. We can do this whereas Rust's `RwLockWriteGuard` can't because we know that the object we are protecting came from our special heap, whereas a `RwLock<T>` can be stored anywhere and not even necessarily in a heap allocation.
-* our heap allows us to _very very carefully_ access deallocated objects, using the hack of overlaying the lock/generation counter with the free list next pointer. Not only do we know that the backing memory segment itself cannot disappear, we've also gain the ability to _logically_ invalidate old pointers to the freed node, without having to go through connected graph nodes to erase the pointers.
+* our heap allows us to _very very carefully_ access deallocated objects, using the hack of overlaying the lock/generation counter with the free list next pointer. Not only do we know that the backing memory segment itself cannot disappear, we've also gained the ability to _logically_ invalidate old pointers to the freed node, without having to go through connected graph nodes to erase the pointers.
 * we _want_ to be able to define periods in the code where neither allocator nor netlist activity are happening. We can couple these together _on purpose_ even though there is no need to do so for safety (by adding a `PhantomData` inside the read/write guards borrowing the thread shard).
 
 This is good intuition to have going forwards!
