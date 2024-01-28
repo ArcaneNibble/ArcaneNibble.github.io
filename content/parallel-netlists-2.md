@@ -277,7 +277,7 @@ Incidentally, I also fixed a bunch of coercions to `*mut`, removed some unnecess
 
 We can now rerun the hacky benchmark from the previous attempt (which now very obviously doesn't test object deletion nor otherwise have particularly good invariant self-checking, but at least it'll be an apples-to-apples comparison):
 
-TODO put a graph here
+![Data graph]({static}/images/netlist-phase2-custom-alloc.png)
 
 Some observations:
 
