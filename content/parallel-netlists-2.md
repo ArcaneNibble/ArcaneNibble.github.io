@@ -1,7 +1,6 @@
 Title: Parallel-capable netlist data structures, part 2
 Date: 2024-01-28
 Summary: Sometimes reinventing the wheel pays off...
-Status: draft
 
 # Issues with the current code
 
