@@ -69,7 +69,7 @@ And finally, the "hmm we _should_ be able to continue?" cases observed above are
 
 ## Back to software
 
-So... how *do* we implement said hand-waving? Preferably without adding intrusive lists inside netlist nodes which can end up growing unboundedly in size?
+So... how *do* we implement said hand-waving? Preferably without adding lists inside netlist nodes which can end up growing unboundedly in size?
 
 The obvious approach is to just _have_ said lists and make every netlist node store a list of outstanding writes to it. Trying to acquire a lock on the node will check for hazards.
 
@@ -83,4 +83,14 @@ If we are trying to acquire a read-only lock, this is allowed as long as we have
 
 If we are trying to acquire a read-write lock... oops, there can only be _one_ pending read-write lock per node! Because the second one might depend on data written by the first one.
 
-Whelp, it turns out that the "commit" (vs "undo") model inherently limits us to one level of speculation.
+Whelp, it turns out that the "commit" (vs "undo") model inherently limits us to one level of speculation. You can't mix-and-match both models (Imagine e.g. performing agglomerative clustering and trying to manipulate the kd-tree with undo, but the netlist itself defers writes. The kd-tree would end up referencing nodes that don't even exist yet!) Which also implies that we might as well restrict "add new tasks to queue" to the commit phase.
+
+There is still parallelism extractable with this model! Just not as much!
+
+Okay, fine, let's see where this gets us before we have to go figure out how to make all netlist operations undo-able. The only change we now have to make to locking is "a read-only lock of higher priority can still read from a write-locked node, as long as it hasn't committed yet."
+
+Incidentally, we need some way for write operations that detect conflicts to cancel the other operation, so we need some way to go from netlist node -> other iteration's commit pool entry. There might be at most one _write_ to cancel, but there can be an unbounded number of _reads_ to cancel.
+
+Oops, so we need to store all outstanding reads as well as writes. Oh! But, with the "commit" model, the pending commit data structure _already_ has to store all of those. We just need a way to link multiple of them together.
+
+So one possible implementation we could potentially use is: "single global task queue (with locks), single global commit queue (with locks), single global hashtable (with locks), iteration records (with individual lock), 'prepare' phase `try_write` is the normal one, `try_read` can ~somehow~ atomically barge past a lower-priority pending write."
