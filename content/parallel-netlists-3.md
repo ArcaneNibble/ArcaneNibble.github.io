@@ -50,3 +50,37 @@ In order for locking to fail, a _write_ has to be involved somewhere. Let's try 
 Whoops, it turns out that simple, straightforward reader-writer locks aren't the correct model for this! (although they're fine for the unordered-commits-immediately algorithms like the hacky benchmark has been doing)
 
 I guess it's time to look into how modern CPUs manage out-of-order execution... (it might be a better or at least different mental model to have vs commutativity)
+
+## Stretching the hardware analogy
+
+Let's see how far we can push the analogy between speculative netlist modification and CPU speculative execution. Firstly, the work queue is analogous to a CPU instruction stream. Unlike an instruction stream, the work queue is a priority queue, and adding new items can cause the desired instruction sequence to get reshuffled. Notably, a low-priority work item can queue something with higher priority (in a single-threaded executor, this will then be executed immediately).
+
+Netlist nodes are analogous to registers. Unlike CPU registers, the number of nodes we can have is unbounded, and their size is also unbounded (i.e. we do not want to be duplicating nodes).
+
+The number of threads we have running our algorithm is analogous to CPU functional units.
+
+The problem we need to be detecting would be referred to as a _hazard_ in CPU design. One major difference is that in a CPU instruction set there are relatively few registers, so potential hazards occur all the time. In a large graph data structure, there are effectively a ton of registers, so hazards are relatively unlikely. Even if a hazard does occur, if there is a lot of pending work then it would be quite likely that it might be possible to find some other non-conflicting work to do instead of stalling.
+
+Unlike when designing a CPU, our algorithms here aren't limited by a fixed number of physical wires between different parts of the algorithm. However, physical wires are vaguely analogous to global state, locks, and contention which do affect our performance.
+
+The Kulkarni et al. paper is already describing their _commit pool_ data structure as similar to a CPU's reorder buffer.
+
+And finally, the "hmm we _should_ be able to continue?" cases observed above are solved in CPUs using _register renaming_. We should ~handwaves~ somehow be able to do something similar by tracking the priority of attempted writes to each object? But this is probably about as far as the analogy can go. Time to flip back to the software viewpoint.
+
+## Back to software
+
+So... how *do* we implement said hand-waving? Preferably without adding intrusive lists inside netlist nodes which can end up growing unboundedly in size?
+
+The obvious approach is to just _have_ said lists and make every netlist node store a list of outstanding writes to it. Trying to acquire a lock on the node will check for hazards.
+
+The other obvious approach is to make the commit pool store a record of every write it is going to make, and then having all of the locking functions scan through the entire commit pool to check for hazards.
+
+Now that we're in a software mindset again, we can try using a nice software trick for moving queues out of the lock object -- hashing the address! This trick is used for futexes, parking lot locks, etc.
+
+Let's suppose we had some kind of concurrent hashtable mapping `(node_address) -> ???`. What do we need to put in it? Let's suppose we store a list of pending writes and their priorities. What will our locking functions do?
+
+If we are trying to acquire a read-only lock, this is allowed as long as we have higher priority than anything in the list.
+
+If we are trying to acquire a read-write lock... oops, there can only be _one_ pending read-write lock per node! Because the second one might depend on data written by the first one.
+
+Whelp, it turns out that the "commit" (vs "undo") model inherently limits us to one level of speculation.
