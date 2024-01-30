@@ -144,3 +144,26 @@ What invariants do we have with this design?
 * If the lock is flagged as a write lock with a given priority, there are no other writers trying to write, but *there can be higher-priority readers trying to read*. Can this cause problems? What happens if we're at the head of the commit queue? Can we race against objects with the _same_ priority?
 
 While pondering this specific issue, yet another realization: in our more restricted "commit" (instead of "undo") model here, we do _not_ need separate work queue and commit pool objects. Everything in the work queue has to happen at some point.
+
+There's definitely trickiness involved when we have a bunch of objects with the same priority. To make everything easier to reason about, it might be simpler to require priorities to have a _total_ order and not just a partial order.
+
+In any case, with this proposed model:
+
+* In case of lock acquisition failure, we want to associate the task queue item with the node (for the ordered *and* unordered case)
+* On success in the ordered case, we need to rummage through data associated with the node in all cases (either to add ourselves to the list, or to abort other tasks)
+
+Hmm, it turns out a rwlock might not actually be all that useful (it's still good for the _unordered_ case, but not this ordered case). Packing the priority into a 128-bit DCAS might not be very useful either, since we have to mess around with lists in both the success and failure case. Perhaps we just need a simple mutex protecting the "wants locks" and "owns locks" lists? Something like:
+
+1. Acquire per-node mutex
+2. Check the lists associated with node. Abort tasks if necessary. Add ourselves to the appropriate list.
+3. Release per-node mutex
+4. Hopefully it is now correct to let user code run as long as it doesn't commit
+5. Probably need the per-node mutex again upon commit???
+
+Oh, I just realized that we might be able to eliminate what the paper describes as the _iteration lock_, which is held around "invoking methods on shared objects." The paper doesn't clearly explain _how_ one iteration actually manages to get a reference to the conflicting iteration's iteration lock, but it obviously has to be mediated through a shared object (i.e. a netlist node) and the shared object's conflict logs. In the paper's model, the iteration lock then has to be held in order to stop the iteration being aborted from messing up any more state while work is being undone. In our case, no actual work on the netlist happens until commit.
+
+What should we do on contention of the per-node mutex? The maximum length of the critical section is O(size of commit queue), so an easy approach is to just spin.
+
+### Reinventing parking lot
+
+At this point I realize that I am basically re-inventing all of the features of parking lot locks, with one critical exception: we are not going to be suspending OS threads. We only suspend the work item. There will probably be a lot more work items available to try and do. This means our performance requirements will be different.
