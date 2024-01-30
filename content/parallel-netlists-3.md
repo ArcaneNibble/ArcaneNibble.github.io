@@ -19,7 +19,7 @@ The Kulkarni et al. paper mentions using a poset (which our framework will be pr
 
 ## Speculative execution
 
-The "oh DUH" realization finally struck when staring at the Figure 9 commutativity rules for a `Set`, specifically that there are commutativity rules around `get()` -- the model described in the paper allows _speculative execution_! Not just a limited amount of speculating stuff already existing in the work queue, but _an entire forest_ of speculative computations. In fact, for agglomerative clustering, the paper mentions that "However, on occasion, we must speculate over 100 elements deep into the ordered set to continue making forward progress."
+The "oh DUH" realization finally struck when staring at the Figure 9 commutativity rules for a `Set`, specifically that there are commutativity rules around `get()` -- the model described in the paper allows _speculative execution_! Not just a limited amount of speculating and reordering stuff already existing in the work queue, but _an entire forest_ of speculative computations. In fact, for agglomerative clustering, the paper mentions that "However, on occasion, we must speculate over 100 elements deep into the ordered set to continue making forward progress."
 
 However, speculative execution has a downside in that, in pathological cases, it can end up performing huge amounts of wasted work. We probably want some way to control whether or not speculation is allowed, or at least how much is allowed.
 
@@ -65,7 +65,7 @@ Unlike when designing a CPU, our algorithms here aren't limited by a fixed numbe
 
 The Kulkarni et al. paper is already describing their _commit pool_ data structure as similar to a CPU's reorder buffer.
 
-And finally, the "hmm we _should_ be able to continue?" cases observed above are solved in CPUs using _register renaming_. We should ~handwaves~ somehow be able to do something similar by tracking the priority of attempted writes to each object? But this is probably about as far as the analogy can go. Time to flip back to the software viewpoint.
+And finally, the "hmm we _should_ be able to continue?" cases observed above are solved in CPUs using _register renaming_. We should ~handwaves~ somehow be able to do something similar by tracking the priority of attempted writes to each object? And ~somehow~ letting locks get stolen in some situations? But this is probably about as far as the analogy can go. Time to flip back to the software viewpoint.
 
 ## Back to software
 
@@ -75,22 +75,72 @@ The obvious approach is to just _have_ said lists and make every netlist node st
 
 The other obvious approach is to make the commit pool store a record of every write it is going to make, and then having all of the locking functions scan through the entire commit pool to check for hazards.
 
-Now that we're in a software mindset again, we can try using a nice software trick for moving queues out of the lock object -- hashing the address! This trick is used for futexes, parking lot locks, etc.
+But there's a nice trick to not require scanning through the entire commit pool -- hashing the address! This trick is used for futexes, parking lot locks, etc.
 
-Let's suppose we had some kind of concurrent hashtable mapping `(node_address) -> ???`. What do we need to put in it? Let's suppose we store a list of pending writes and their priorities. What will our locking functions do?
+Let's suppose we had some kind of concurrent hashtable mapping `(node_address) -> ???`. What do we need to put in it? Let's suppose we store a list of pending writes and their priorities. What hazards will our locking functions check for?
 
 If we are trying to acquire a read-only lock, this is allowed as long as we have higher priority than anything in the list.
 
-If we are trying to acquire a read-write lock... oops, there can only be _one_ pending read-write lock per node! Because the second one might depend on data written by the first one.
+If we are trying to acquire a read-write lock... oops, there can only be _one_ pending read-write lock per node! Because the second one might depend on data written by the first one. We don't actually _have_ that data yet, because the first operation hasn't committed yet.
 
-Whelp, it turns out that the "commit" (vs "undo") model inherently limits us to one level of speculation. You can't mix-and-match both models (Imagine e.g. performing agglomerative clustering and trying to manipulate the kd-tree with undo, but the netlist itself defers writes. The kd-tree would end up referencing nodes that don't even exist yet!) Which also implies that we might as well restrict "add new tasks to queue" to the commit phase.
+Whelp, it turns out that the "commit" (vs "undo") model inherently limits us to only reordering within the work queue. You also can't mix-and-match both models (Imagine e.g. performing agglomerative clustering and trying to manipulate the kd-tree with undo, but the netlist itself defers writes. The kd-tree would end up referencing nodes that don't even exist yet!) Which also implies that we need to restrict "add new tasks to queue" to the commit phase.
 
-There is still parallelism extractable with this model! Just not as much!
+Fortunately, there is still parallelism extractable with this model! Just not as much!
 
-Okay, fine, let's see where this gets us before we have to go figure out how to make all netlist operations undo-able. The only change we now have to make to locking is "a read-only lock of higher priority can still read from a write-locked node, as long as it hasn't committed yet."
+Okay, fine, let's stick with this and see where this gets us before we try to go figure out how to make all netlist operations undo-able. (We'll come back to that option later if we really need it.) The only change we now have to make to locking is "a read-only lock of higher priority can still read from a write-locked node, as long as it hasn't committed yet."
 
-Incidentally, we need some way for write operations that detect conflicts to cancel the other operation, so we need some way to go from netlist node -> other iteration's commit pool entry. There might be at most one _write_ to cancel, but there can be an unbounded number of _reads_ to cancel.
+Incidentally, we need some way for write operations that detect conflicts to cancel the other operation, so we need some way to go from netlist node -> other iteration's commit pool entry. Oh, but there might be at most one _write_ to cancel, but there can be an unbounded number of _reads_ to cancel.
 
-Oops, so we need to store all outstanding reads as well as writes. Oh! But, with the "commit" model, the pending commit data structure _already_ has to store all of those. We just need a way to link multiple of them together.
+Oops, so we need to store all outstanding _reads_ as well as writes. Oh! But, with the "commit" model, the pending commit data structure _already_ has to store all of that information. We just need a way to link it all together.
 
-So one possible implementation we could potentially use is: "single global task queue (with locks), single global commit queue (with locks), single global hashtable (with locks), iteration records (with individual lock), 'prepare' phase `try_write` is the normal one, `try_read` can ~somehow~ atomically barge past a lower-priority pending write."
+So one possible implementation we could potentially use is: "single global task queue (atomic somehow), single global commit queue (atomic somehow), single global hashtable (atomic somehow), iteration records (with individual lock), 'prepare' phase `try_write` is the normal one, `try_read` can ~somehow~ atomically skip past a lower-priority pending write."
+
+But... can we do better? Can we shard some of the global objects and/or replace anything with lock-free implementations? Let's try.
+
+First of all... an incidental realization as a result having parking lot locks floating around in our brain: if we *fail* to acquire a lock, we give up and try a different node. Easy. But the current hacky benchmark works by... shoving the node at the back of the queue. Wouldn't it be nice if we were notified when the locks we're waiting for are available again? _We can potentially store that data in the hashtable as well_.
+
+## Reinventing locks yet again
+
+This time it's a bit more complicated than the standard rwlock I've done many times.
+
+We need some kind of rwlock _with priority_, and possibly with a list of waiters:
+
+* A `write` operation tries to get an exclusive write lock.
+    * If the lock is completely unlocked, hooray! But for the "ordered" case, we need to somehow associate our iteration object with the lock.
+    * If the lock has a writer...
+        * In the unordered case, fail but somehow associate this task item's interest in the lock with the node?
+        * In the ordered case, check priorities
+            * If we are higher, somehow abort the other pending iteration
+            * If we are lower, fail but somehow associate this task item's interest in the lock with the node?
+    * If the lock has reader(s)...
+        * In the unordered case, fail but somehow associate this task item's interest in the lock with the node?
+        * In the ordered case, check priorities
+            * If we are higher than all of them, somehow abort the other pending iterations
+            * If we are lower than all of them, we're still allowed to take the lock!
+            * Otherwise we only have to abort the reads that have lower priority than us
+            * Question: what if the priorities only have a partial order? Or are simply just equal? We can abort all the readers, or we can abort the write attempt. To match with the unordered case, probably abort the writer.
+    * Write has to allow for deallocating the object
+* A `read` operation tries to get a read-only lock.
+    * If the lock is completely unlocked, hooray! But for the "ordered" case, we need to somehow associate our iteration object with the lock.
+    * If the lock has a writer...
+        * In the unordered case, fail but somehow associate this task item's interest in the lock with the node?
+        * In the ordered case, check priorities
+            * If we are higher, we're still allowed to take the lock!
+            * If we are lower, fail but somehow associate this task item's interest in the lock with the node?
+    * If the lock has reader(s)...
+        * We are allowed to take the lock
+* Unlocking a `read` lock
+    * Somehow de-associate our iteration object with the lock.
+    * Somehow signal a waiting writer, the one with the highest priority
+* Unlocking a `write` lock
+    * Somehow de-associate our iteration object with the lock.
+    * Somehow signal the right subset of waiters, i.e. all of them with priority between our priority and the next pending write's priority
+
+Let's try extending the `lock_and_generation` field to a full 128 bits (requiring double-CAS) and store the priority in the second half. Specifically, let's store either the lowest priority of reader, if there are only readers, or the priority of the writer, if there is a (singular) writer. Is this sufficient to make all the operations that need to be atomic atomic?
+
+What invariants do we have with this design?
+
+* If the lock is flagged as a read lock, regardless of priority, there can be multiple readers reading stuff, but nobody can be trying to write.
+* If the lock is flagged as a write lock with a given priority, there are no other writers trying to write, but *there can be higher-priority readers trying to read*. Can this cause problems? What happens if we're at the head of the commit queue? Can we race against objects with the _same_ priority?
+
+While pondering this specific issue, yet another realization: in our more restricted "commit" (instead of "undo") model here, we do _not_ need separate work queue and commit pool objects. Everything in the work queue has to happen at some point.
