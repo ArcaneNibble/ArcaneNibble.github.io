@@ -16,4 +16,4 @@ I attended UC Berkeley and have MEng and BS degrees in Electrical Engineering an
 
 Don't hesitate to try to get in touch with me! If I haven't responded, please try again a few more times - I tend to forget about these sorts of things.
 
-Although I am currently deliberately taking a period of funemployment, feel free to reach out to me with interesting opportunities.
+I'm looking for work! See my [CV](/cv.html)

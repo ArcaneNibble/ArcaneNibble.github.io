@@ -15,11 +15,8 @@ TRANSLATION_FEED_ATOM = None
 AUTHOR_FEED_ATOM = None
 AUTHOR_FEED_RSS = None
 
-# # Blogroll
-# LINKS = (('Pelican', 'https://getpelican.com/'),
-#          ('Python.org', 'https://www.python.org/'),
-#          ('Jinja2', 'https://palletsprojects.com/p/jinja/'),
-#          ('You can modify those links in your config file', '#'),)
+# Blogroll
+LINKS = (('My CV', '/cv.html'),)
 
 # Social widget
 SOCIAL = (('Twitter', 'https://twitter.com/ArcaneNibble'),
@@ -31,6 +28,17 @@ DEFAULT_PAGINATION = False
 
 # Uncomment following line if you want document-relative URLs when developing
 #RELATIVE_URLS = True
+
+STATIC_PATHS = [
+    'images',
+    'extra',
+]
+ARTICLE_EXCLUDES = [
+    'extra',
+]
+EXTRA_PATH_METADATA = {
+    'extra/new-cv.html': {'path': 'cv.html'}
+}
 
 PLUGINS = ['i18n_subsites']
 JINJA_ENVIRONMENT = {'extensions': ['jinja2.ext.i18n']}

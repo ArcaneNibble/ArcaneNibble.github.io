@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <!-- Hi to the person reading this! I'm not a serious web designer, so this page is purposely simple and functional-->
+        <title>Mx. &lt;NormieName&gt; R CV</title>
+        <style>
+            *, *::before, *::after {
+                box-sizing: border-box;
+            }
+            * {
+                margin: 0;
+            }
+
+            :root {
+                --thm-purple: #df73ff;
+                --thm-orange: #ff4f00;
+                --thm-blue: #bedbed;
+                --thm-green: #cbe896;
+            }
+
+            body {
+                line-height: 1.5;
+                max-width: 960px;
+                margin: auto;
+            }
+            header {
+                text-align: center;
+                font-family: serif;
+                font-size: 2em;
+            }
+            section {
+                font-family: sans-serif;
+            }
+
+            #contacts {
+                border-bottom: 0.1em solid var(--thm-purple);
+            }
+            #contacts >table {
+                margin: auto;
+            }
+            #contacts >table >tbody >tr >td:first-child {
+                padding-right: 2em;
+                text-align: right;
+            }
+            a:link {
+                color: var(--thm-orange);
+            }
+            a:visited {
+                color: var(--thm-blue);
+            }
+            @media print {
+                a {
+                    text-decoration: none;
+                }
+            }
+
+            #background {
+                margin: 1em 0em;
+            }
+
+            section >ul {
+                list-style-type: none;
+                padding-left: 1em;
+            }
+            p {
+                padding-left: 0.5em;
+                margin-bottom: 0.5em;
+            }
+            section >ul >li ul {
+                padding-left: 1.75em;
+            }
+            section >ul >li >ul {
+                list-style-type: "❖ ";
+            }
+            section >ul >li >ul >li >ul {
+                list-style-type: "⌑ ";
+            }
+            section >ul >li ul >li::marker {
+                color: color-mix(in hsl, var(--thm-green), black 40%);
+            }
+            #skills >ul {
+                list-style-type: "❖ ";
+                padding-left: 1.5em;
+            }
+            #skills >ul >li::marker {
+                color: color-mix(in hsl, var(--thm-green), black 40%);
+            }
+
+            h1 {
+                font-size: 1.5em;
+                font-weight: normal;
+                color: color-mix(in hsl, var(--thm-purple), black 40%);
+            }
+
+            h2 {
+                font-size: 1.2em;
+                font-weight: normal;
+                color: color-mix(in hsl, var(--thm-orange), black 40%);
+
+                display: flex;
+            }
+            .date {
+                margin-left: auto;
+            }
+        </style>
+    </head>
+    <body>
+        <header>Mx. <small>&lt;NormieName&gt;</small> R</header>
+        <section id="contacts">
+            <table>
+                <tbody>
+                    <tr><td>Email</td><td>rq<span style="display: none">NOSPAM</span>ou@berkeley.edu</td></tr>
+                    <tr><td>Tel.</td><td>+44 7585 740857</td></tr>
+                    <tr><td>GitHub</td><td><a href="https://github.com/ArcaneNibble/">ArcaneNibble</a></td></tr>
+                </tbody>
+            </table>
+        </section>
+        <section id="background">
+            I am a full-stack hacker who normally goes by “R.” I have always been driven by a strong desire to understand everything about how complex systems work. As a result, I was self-taught and had been working on projects since a very young age, but I also have a solid formal education to back this up. This desire to understand everything drove me into a career in cybersecurity, but I am currently looking to apply these skills to build next-generation technology.
+        </section>
+        <section id="edu">
+            <h1>Education: University of California, Berkeley</h1>
+            <ul>
+                <li>
+                    <h2>MEng Electrical Engineering and Computer Science <span class="date">(2017-2018)</span></h2>
+                    <p>GPA: 3.8 (equivalent to first class honours)</p>
+                    <p>Capstone project: Built a self-balancing bicycle in a team of three. Developed a business model, performed theoretical control theory calculations (controllability, stability), and built electronics.</p>
+                    <p>Modules: robotics, power electronics, linear and nonlinear control theory, accounting and finance, engineering leadership (communication, marketing, product management)</p>
+                </li>
+                <li>
+                    <h2>BSc. (Hons.) Electrical Engineering and Computer Science <span class="date">(2012-2016)</span></h2>
+                    <p>GPA: 3.8 (equivalent to first class honours)</p>
+                    <p>Studied basic fundamentals of EECS including data structures, computer architecture, microelectronic circuits, and linear systems. Chose additional modules to include all of the theory needed to design computers, starting from semiconductor fabrication and digital design, to operating systems and compilers, and finally applications such as machine learning and communication systems.</p>
+                </li>
+            </ul>
+        </section>
+        <section id="professional">
+            <h1>Professional Experience</h1>
+            <ul>
+                <li>
+                    <h2>Senior Technical Security Engineer, Yahoo! <span class="date">(2018-2022)</span></h2>
+                    <ul>
+                        <li>Key member of Paranoids Red Team, simulating  external attackers and proactively discovering and fixing security vulnerabilities throughout the company</li>
+                        <li>Worked with colleagues to push for systemic “root-cause” improvements, such as password managers, code secrets management, and revamped compliance training</li>
+                        <li>
+                            Designed an electronic conference badge to promote the Paranoids cybersecurity team
+                            <ul>
+                                <li>Released badge design as <a href="https://github.com/theparanoids/keyhole-badge/">open-source</a></li>
+                                <li>Presented at Hackaday Superconference 2022</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </li>
+                <li>
+                    <h2>Software Engineering Intern, Broadcom <span class="date">(2015)</span></h2>
+                    <ul>
+                        <li>Designed and built a tool and framework in Python to debug network switch programming</li>
+                        <li>Rewrote board supervisor microcontroller firmware for demonstrating switch capabilities</li>
+                    </ul>
+                </li>
+                <li>
+                    <h2>Software Engineering Intern, National Instruments <span class="date">(2014)</span></h2>
+                    <ul><li>Added performance regression testing to device driver build/test pipeline, utilizing CPU performance counters</li></ul>
+                </li>
+                <li>
+                    <h2>Software Engineering Intern, Google <span class="date">(2013)</span></h2>
+                    <ul><li>Implemented unreleased features for Google Search</li></ul>
+                </li>
+            </ul>
+        </section>
+        <section id="personal">
+            <h1>Personal Projects</h1>
+            <ul>
+                <li>
+                    <h2>Asahi Linux Development</h2>
+                    <ul>
+                        <li>Reverse-engineering Apple Silicon hardware in order to develop open-source Linux drivers</li>
+                        <li>Wrote proof-of-concept drivers for the Bluetooth, ProRes accelerator, JPEG accelerator, and IOMMU hardware</li>
+                        <li>Partial reverse engineering of the image scaler and video decoder hardware</li>
+                    </ul>
+                </li>
+                <li>
+                    <h2>Open-source electronics hardware</h2>
+                    <ul>
+                        <li>Starting to build a community and accessible English development resources around microcontrollers from Asian vendors</li>
+                        <li>Patches to LLVM to improve RISC-V microcontroller support</li>
+                        <li>Wrote a USB UF2 bootloader for WCH CH32V parts to enable simple firmware loading without requiring debugging hardware</li>
+                    </ul>
+                </li>
+                <li>
+                    <h2>Programmable logic reverse-engineering</h2>
+                    <ul>
+                        <li>Reverse-engineered the configuration bitstream for Intel/Altera MAX V CPLDs, so that open-source compilers can be written</li>
+                        <li>Completed the reverse-engineering of AMD/Xilinx CoolRunner-II CPLDs</li>
+                    </ul>
+                </li>
+            </ul>
+        </section>
+        <section id="skills">
+            <h1>Skills</h1>
+            <ul>
+                <li>Languages: English (native), Cantonese, Mandarin</li>
+                <li>Programming: C, Rust, C++, C#, Java, Python, assembly (x86, ARM, RISC-V, PPC)</li>
+                <li>Digital logic: Verilog, VHDL, Yosys, Xilinx ISE, Altera Quartus</li>
+                <li>Microcontrollers: STM32, AVR, nRF52, RP2040, ATSAMD, CH32V, PY32</li>
+                <li>PCB design: KiCad, CadSoft EAGLE</li>
+                <li>Computers: Linux, macOS, AWS, Qemu/KVM, iptables/nftables, web server stacks (Apache, nginx, MySQL, Postgres), Docker/Podman, Postfix, NixOS</li>
+            </ul>
+        </section>
+    </body>
+</html>
