@@ -19,7 +19,7 @@ AUTHOR_FEED_RSS = None
 LINKS = (('My CV', '/cv.html'),)
 
 # Social widget
-SOCIAL = (('Twitter', 'https://twitter.com/ArcaneNibble'),
+SOCIAL = (('Mastodon', 'https://glauca.space/@r', 'home'),
           ('GitHub', 'https://github.com/ArcaneNibble/'),
           ('Email', 'mailto:rqou@berkeley.edu', 'envelope'),
           ('Ko-fi', 'https://ko-fi.com/arcanenibble', 'dollar'))
