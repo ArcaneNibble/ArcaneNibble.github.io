@@ -1,11 +1,10 @@
 Title: A history of "Web" tech, from a "non-Web" developer
-Date: 2025-01-01
+Date: 2025-03-27
 Summary: What the !@#$ happened over the past decade?
-status: draft
 
 I recently had to demonstrate to a partner how application development on Windows worked "back in the day" (using [Visual Studio](https://en.wikipedia.org/wiki/Visual_Studio) (not VSCode) and [MFC](https://en.wikipedia.org/wiki/Microsoft_Foundation_Class_Library)). During the subsequent discussion, I realized that I have an unusual perspective on the history of the software ecosystem over the past decade, and that this information is useful to have in written form. Thus began this post.
 
-The process of organizing and transferring all of these thoughts from headspace to the world of words really helped put things into perspective. I learned a lot through the process of writing this, and I feel like I have much more clarity on the direction I want to see "software" and "tech" go. Despite the problems, I don't think we're at "peak tech" yet!
+The process of organizing and transferring all of these thoughts from headspace to the world of words really helped put things into perspective. I learned a lot merely by writing this, and I feel like I have much more clarity on the direction I want to see "software" and "tech" go. Despite the problems, I don't think we're at "peak tech" yet!
 
 # The prehistoric era
 
@@ -96,11 +95,11 @@ In start contrast to all of the above-described ideas, one feature which I _eage
 
 Because we were dealing with embedded systems, we had to deal with C code. C has a reputation for not being very beginner-friendly, so (after a _massive_ detour) we decided to use Lua for high-level logic and use C only for drivers and real-time control ([MicroPython](https://en.wikipedia.org/wiki/MicroPython) once again didn't exist yet).
 
-One design requirement was that we wanted to be able to run this high-level code on a computer in simulation *in addition to* on a physical system. This meant that we needed a way to run Lua inside our desktop application. To stay aggressively cross-platform, I chose to handle this by compiling the Lua interpreter to JavaScript ([WebAssembly](https://en.wikipedia.org/wiki/WebAssembly) was years away from existing).
+One design requirement was that we wanted to be able to run this high-level code on a computer in simulation *in addition to* on a physical system. This meant that we needed a way to run Lua inside our desktop application. To stay aggressively cross-platform, I chose to handle this by compiling the Lua interpreter to JavaScript ([WebAssembly](https://en.wikipedia.org/wiki/WebAssembly) was years away from existing, and asm.js was the early attempt to show why it would be useful and wanted).
 
-Even though this was also experimental technology at the time, Mozilla had already shipped ahead-of-time-compilation optimizations for asm.js, and one of its main selling points was "it's just JavaScript." In theory, nothing special had to be done to make this work, and it'd fit right in, or so I thought. Oh how wrong I was!
+Even though this was also experimental technology at the time, Mozilla had already shipped ahead-of-time-compilation optimizations for asm.js, and one of its main selling points was "it's just JavaScript." In theory, nothing special had to be done to make it work (on the "library consumer" end), and it'd fit right in, or so I thought. Oh how wrong I was!
 
-Even though asm.js "just produces JavaScript code," it doesn't _culturally_ fit the Web ecosystem. C code simply has vastly different assumed knowledge _in the developer_. First of all, the toolchain for building asm.js, [Emscripten](https://emscripten.org/), [didn't have Linux binary releases yet]((https://web.archive.org/web/20140601171447/https://github.com/kripken/emscripten/wiki/Emscripten-SDK)). This didn't bother me, as I was familiar with having to painfully glue together `arm-none-eabi` toolchains, and so I just compiled a tarball that was shared between my development machines and my CI server. However, wrangling compilers wasn't a typical _Web_ developer activity.
+Even though asm.js "just produces JavaScript code," it doesn't _culturally_ fit the Web ecosystem. C code simply has vastly different assumed knowledge _in the developer_. First of all, the toolchain for building asm.js, [Emscripten](https://emscripten.org/), [didn't have Linux binary releases yet]((https://web.archive.org/web/20140601171447/https://github.com/kripken/emscripten/wiki/Emscripten-SDK)). This didn't bother me, as I was familiar with having to painfully glue together `arm-none-eabi` toolchains for the microcontroller, and so I just compiled a tarball that was shared between my development machines and my CI server. However, wrangling compilers wasn't a typical _Web_ developer activity.
 
 Even worse, _because_ I was using Linux as my primary development platform and as the CI platform, the entire rest of the (monolithic) build system was full of Linux-isms and could't run on any other platform. At the time, I didn't understand why this was a problem as the final build artifacts themselves were indeed truly cross-platform, but this _further_ alienated Web-focused developers.
 
@@ -110,7 +109,7 @@ Unfortunately, this wasn't enough to resolve all of the culture clash. Even thou
 
 By this point, the project had ballooned in scope and used Python, Lua, and JavaScript in different places. Much haphazard porting of libraries between the languages happened when we ran into unavailable functionality.
 
-I _should've_ learned many painful lessons about programming languages and how they get used by humans in practice, but neurodivergence meant that this lesson would take the next decade to truly sink in.
+I _should've_ learned many painful lessons about programming languages, what they assume about developers, and how they get used by humans in practice, but neurodivergence meant that this lesson would take the next decade to truly sink in.
 
 # The end, and the true rise of Web
 
@@ -120,7 +119,7 @@ I didn't pay attention to many of the associated technologies for several years.
 
 The dust settled on the mess. Many problems were fixed. Some problems got worse.
 
-"Web" proceeded to eat the entire world. More and more applications are now developed using Electron.
+"Web" proceeded to eat the entire world. More and more applications are now developed using Electron. Mozilla managed to lose just about _every_ advantage that they already held.
 
 npm won out as the definitive package manager and package registry for JavaScript, despite some [spectacular flaws](https://en.wikipedia.org/wiki/Npm_left-pad_incident). More generally, _having_ a "definitive" package registry grew into an expectation for many programming languages:
 
