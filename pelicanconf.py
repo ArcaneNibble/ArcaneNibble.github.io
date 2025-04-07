@@ -42,7 +42,7 @@ EXTRA_PATH_METADATA = {
 
 PLUGINS = ['i18n_subsites']
 JINJA_ENVIRONMENT = {'extensions': ['jinja2.ext.i18n']}
-THEME = "pelican-bootstrap3"
+THEME = "pelican-bootstrap3-fork"
 
 DISPLAY_CATEGORIES_ON_MENU = False
 DISPLAY_CATEGORIES_ON_SIDEBAR = True

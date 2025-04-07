@@ -1,3 +1,7 @@
+# ArcaneNibble forked theme
+
+Original README below
+
 # pelican-bootstrap3
 
 This is a Bootstrap 3 theme for Pelican, originally developed by
@@ -408,11 +412,3 @@ This template can be translated using pybabel and the enclosed Makefile. See
 [This is the website of the original author](http://dandydev.net)
 
 If you want more examples of what you could do with this theme, have a [look here](EXAMPLES.md).
-
-## Screenshot
-
-![](screenshot.png)
-
-![](screenshot-article.png)
-
-
