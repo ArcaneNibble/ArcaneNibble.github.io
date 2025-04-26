@@ -14,10 +14,13 @@
 }
 
 .svgicon {
-    width: 1em;
-    height: 1em;
+    width: 1rem;
+    height: 1rem;
 }
 
+html {
+    font-size: 100%;
+}
 body {
     margin: 0 auto;
     max-width: 1200px;
@@ -34,6 +37,70 @@ code,kbd,pre,samp {
         "Liberation Mono",
         Menlo, Monaco, Consolas,
         monospace;
+}
+
+img {
+    width: 100%;
+    object-fit: scale-down;
+}
+main {
+    header {
+        margin: 1.5rem 0;
+
+        h1 {
+            font-size: 2.3rem;
+        }
+        a {
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline 1px;
+        }
+        .article_date {
+            font-style: italic;
+            margin: 8px;
+        }
+    }
+
+    .article_content {
+        line-height: 1.3em;
+        p, ol, ul {
+            margin-bottom: 1rem;
+        }
+        ol, ul {
+            ol, ul {
+                margin-bottom: 0;
+            }
+        }
+        p:has(+ol), p:has(+ul) {
+            margin-bottom: 0;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-weight: 500;
+            margin-bottom: 1rem;
+        }
+        h1 {
+            font-size: 2rem;
+            line-height: 1.3em;
+        }
+        h2 {
+            font-size: 1.5rem;
+            line-height: 1.3em;
+        }
+        h3 {
+            font-size: 1.25rem;
+            line-height: 1.3em;
+        }
+        h4 {
+            font-size: 1.125rem;
+            line-height: 1.3em;
+        }
+        h5, h6 {
+            font-size: 1rem;
+            line-height: 1.3em;
+        }
+    }
 }
 
 .tophdr {
@@ -72,7 +139,6 @@ code,kbd,pre,samp {
     }
     .sidebar {
         flex: 0 0 200px;
-        background-color: rebeccapurple;
     }
 }
 @media (max-width: 480px) {
@@ -85,7 +151,24 @@ code,kbd,pre,samp {
     }
 }
 
-img {
-    width: 100%;
-    object-fit: scale-down;
+.archives {
+    display: grid;
+    grid-template-columns: auto auto;
+
+    a {
+        grid-column: 1;
+    }
+    span {
+        grid-column: 2;
+    }
+    div {
+        grid-column: 1;
+    }
+}
+
+.sidebar {
+    ul {
+        list-style: none;
+        padding: 0;
+    }
 }

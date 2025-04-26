@@ -5,13 +5,11 @@
 
 {% block content %}
     <h1>Posts</h1>
-    <ul class="archives">
+    <div class="archives">
         {% for article in dates %}
-            <li>
-                <a href="{{ SITEURL }}/{{ article.url }}">{{ article.title }}{% if article.subtitle %} - {{ article.subtitle }}{% endif %}</a>
-                {% include "includes/article_date.html" %}
-                <div>{{ article.summary }}</div>
-            </li>
+            <a href="{{ SITEURL }}/{{ article.url }}">{{ article.title }}{% if article.subtitle %} - {{ article.subtitle }}{% endif %}</a>
+            <span>{% include "includes/article_date.html" %}</span>
+            <div>{{ article.summary }}</div>
         {% endfor %}
     </ul>
 {% endblock %}

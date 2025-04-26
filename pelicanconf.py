@@ -21,12 +21,10 @@ AUTHOR_FEED_ATOM = None
 AUTHOR_FEED_RSS = None
 
 NAVLINKS = (('My CV', '/cv.html'),)
-
-# Social widget
-SOCIAL = (('Mastodon', 'https://glauca.space/@r', 'home'),
-          ('GitHub', 'https://github.com/ArcaneNibble/'),
-          ('Email', 'mailto:rqou@berkeley.edu', 'envelope'),
-          ('Ko-fi', 'https://ko-fi.com/arcanenibble', 'dollar'))
+SIDELINKS = (('Mastodon', 'https://glauca.space/@r', 'brands', 'mastodon'),
+            ('GitHub', 'https://github.com/ArcaneNibble/', 'brands', 'github'),
+            ('Email', 'mailto:rqou@berkeley.edu', 'solid', 'envelope'),
+            ('Ko-fi', 'https://ko-fi.com/arcanenibble', 'solid', 'money-bill-1-wave'))
 
 DEFAULT_PAGINATION = False
 

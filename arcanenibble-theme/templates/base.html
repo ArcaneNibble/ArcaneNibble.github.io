@@ -54,7 +54,15 @@
             </main>
             {% block sidebar %}
                 <div class="sidebar">
-                    sidebar!
+                    <header>
+                        <svg class="svgicon"><use xlink:href="{{ SITEURL }}/{{ THEME_STATIC_DIR }}/images/fa-solid.svg#link"></use></svg>
+                        Links
+                    </header>
+                    <ul>
+                        {% for text, url, fa, icon in SIDELINKS %}
+                            <li><svg class="svgicon"><use xlink:href="{{ SITEURL }}/{{ THEME_STATIC_DIR }}/images/fa-{{ fa }}.svg#{{ icon }}"></use></svg><a href="{{ url }}">{{ text }}</a></li>
+                        {% endfor %}
+                    </ul>
                 </div>
             {% endblock %}
         </div>

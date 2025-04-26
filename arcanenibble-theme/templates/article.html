@@ -37,10 +37,12 @@
                     {{ article.title }}
                 </a>
             </h1>
-            <div>
+            <div class="article_date">
                 {% include "includes/article_date.html" %}
             </div>
         </header>
-        {{ article.content }}
+        <div class="article_content">
+            {{ article.content }}
+        </div>
     </article>
 {% endblock %}
