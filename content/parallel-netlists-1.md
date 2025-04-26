@@ -35,7 +35,7 @@ The structure that I ended up choosing was:
     * a list of cells with bidirectional connections to the wire
 * Module inputs/outputs are ignored and handwaved away
 
-![Hand-drawn diagram representing data structure]({static}/images/netlist-basic.svg)
+<img src="{static}/images/netlist-basic.svg" alt="Hand-drawn diagram representing data structure" class="needsbg">
 
 This contains the following major differences from Yosys RTLIL:
 
@@ -57,21 +57,21 @@ Of course, as the rest of the code hasn't actually been written, I don't yet kno
 
 The easiest solution that we understood to "just make the thing parallel" is to slap `Arc<Mutex<T>>` or `Arc<RwLock<T>>` everywhere:
 
-![Hand-drawn diagram representing data structure]({static}/images/netlist-with-arc-rwlock.svg)
+<img src="{static}/images/netlist-with-arc-rwlock.svg" alt="Hand-drawn diagram representing data structure" class="needsbg">
 
 However, this has an obvious problem in that this data structure inherently contains a lot of cycles. This means that memory will be leaked and never freed. As a further hack, I decided to make all internal references `Weak`, with the only strong `Arc` references stored in a global `Vec`:
 
-![Hand-drawn diagram representing data structure]({static}/images/netlist-with-weak.svg)
+<img src="{static}/images/netlist-with-weak.svg" alt="Hand-drawn diagram representing data structure" class="needsbg">
 
 With this data structure, no memory will be freed until the entire netlist itself is dropped. Nodes will be free to reference each other with cycles, and upgrading `Weak` references can't ever fail. However, a lot of extraneous reference counting probably happens.
 
 In order to test out this data structure, we need some algorithms to run on some netlists. For testing, I created a randomly-connected netlist of LUT4s:
 
-![Hand-drawn diagram representing data structure]({static}/images/netlist-lut4.svg)
+<img src="{static}/images/netlist-lut4.svg" alt="Hand-drawn diagram representing data structure" class="needsbg">
 
 The test mutation algorithm inserts a buffer on the output of every LUT4, starting from a certain set of "seed" LUT4s:
 
-![Hand-drawn diagram representing data structure]({static}/images/netlist-lut4-buf.svg)
+<img src="{static}/images/netlist-lut4-buf.svg" alt="Hand-drawn diagram representing data structure" class="needsbg">
 
 Although this is not necessarily completely representative of real designs nor algorithms, it is simple and should at least be useful for getting "order of magnitude" performance numbers.
 

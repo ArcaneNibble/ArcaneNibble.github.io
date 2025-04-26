@@ -13,17 +13,47 @@
     margin: 0;
 }
 
+:root {
+    --design-max-width: 1200px;
+    --design-sidebar-width: 200px;
+
+    --bg-color: #111;
+    --txt-color: #fff;
+    --link-nonvisited: #C4C8F0;
+    --link-visited: #E4D0F4;
+}
+@media (prefers-color-scheme: light) {
+    :root {
+        --bg-color: #eee;
+        --txt-color: #000;
+        --link-nonvisited: #0C1048;
+        --link-visited: #380860;
+    }
+}
+@media not (prefers-color-scheme: light) {
+    .svgicon {
+        filter: invert(100%);
+    }
+
+    img.needsbg {
+        background-color: #888;
+    }
+}
+
 html {
     font-size: 100%;
 }
 body {
     margin: 0 auto;
-    max-width: 1200px;
+    max-width: var(--design-max-width);
     font-family:
         -apple-system, BlinkMacSystemFont,
         "Segoe UI",
         "Liberation Sans",
         sans-serif;
+
+    background-color: var(--bg-color);
+    color: var(--txt-color);
 }
 code,kbd,pre,samp {
     font-family:
@@ -36,6 +66,10 @@ code,kbd,pre,samp {
 
 a {
     text-decoration: underline dashed;
+    color: var(--link-nonvisited);
+}
+a:visited {
+    color: var(--link-visited);
 }
 a:hover {
     text-decoration: underline;
@@ -80,8 +114,9 @@ main {
         h1 {
             font-size: 2.3rem;
         }
-        a {
+        a, a:visited {
             text-decoration: none;
+            color: var(--txt-color);
         }
         a:hover {
             text-decoration: underline 1px;
@@ -150,6 +185,7 @@ main {
 
         a {
             text-decoration: none;
+            color: var(--txt-color);
         }
         a::before {
             content: "[ ";
@@ -158,6 +194,11 @@ main {
             content: " ]";
         }
     }
+
+    li.active a {
+        background-color: var(--txt-color);
+        color: var(--bg-color);
+    }
 }
 
 .maindiv {
@@ -165,11 +206,11 @@ main {
 
     main {
         flex: 1;
-        max-width: calc(min(100vw, 1200px) - 200px);
+        max-width: calc(min(100vw, var(--design-max-width)) - var(--design-sidebar-width));
         padding: 4px;
     }
     .sidebar {
-        flex: 0 0 200px;
+        flex: 0 0 var(--design-sidebar-width);
     }
 }
 @media (max-width: 768px) {
