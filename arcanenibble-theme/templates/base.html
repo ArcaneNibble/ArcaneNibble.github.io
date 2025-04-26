@@ -22,6 +22,13 @@
             {% endif %}
         {% endblock %}
 
+        <style>
+            .svgicon {
+                width: 1em;
+                height: 1em;
+            }
+        </style>
+        <link rel="stylesheet" href="{{ SITEURL }}/{{ THEME_STATIC_DIR }}/css/code.css" type="text/css"/>
         <link rel="stylesheet" href="{{ SITEURL }}/{{ THEME_STATIC_DIR }}/css/style.css" type="text/css"/>
 
         {% if FEED_ALL_ATOM %}
@@ -76,8 +83,8 @@
             {% else %}
                 {% set copy_date = '' %}
             {% endif %}
-            <div>&copy; {{ copy_date }} {{ AUTHOR }}</div>
-            <p><small>Unless otherwise stated, all articles are published under the <a href="https://creativecommons.org/publicdomain/zero/1.0/legalcode">CC0</a> license.</small></p>
+            <p>&copy; {{ copy_date }} {{ AUTHOR }}</p>
+            <p>The articles on this website are published under the <a href="https://creativecommons.org/publicdomain/zero/1.0/legalcode">CC0</a> license.</p>
         </footer>
     </body>
 </html>
