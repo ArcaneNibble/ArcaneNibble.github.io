@@ -4,7 +4,7 @@
 {% block canonical_rel %}<link rel="canonical" href="{{ SITEURL }}/{{ ARCHIVES_URL | default('archives.html') }}">{% endblock %}
 
 {% block content %}
-    <h1>Posts</h1>
+    <h1 class="archives_hdr">Posts</h1>
     <div class="archives">
         {% for article in dates %}
             <a href="{{ SITEURL }}/{{ article.url }}">{{ article.title }}{% if article.subtitle %} - {{ article.subtitle }}{% endif %}</a>

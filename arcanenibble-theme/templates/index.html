@@ -6,7 +6,9 @@
 {% block content %}
     {% for p in pages %}
     {% if p.title == 'Homepage' %}
-        {{ p.content }}
+        <div class="md_content">
+            {{ p.content }}
+        </div>
     {% endif %}
     {% endfor %}
 {% endblock %}
