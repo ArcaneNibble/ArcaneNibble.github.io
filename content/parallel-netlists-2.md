@@ -138,8 +138,8 @@ I spent quite some time pouring over this paper. I am not very good at serializi
 * We don't need a general-purpose malloc, only a closed set of types of known sizes, so we don't need the `pages_direct`/`pages` lists.
 * Q: Why does Mimalloc need three free lists, but `sharded_slab` only has _two_? A: With the `sharded_slab` implementation, the "deterministic heartbeat" functionality is lost.
     * What is Mimalloc amortizing with its deterministic heartbeat?
-        * Batching frees for dynamic languages -- not something that we need
-        * Returning memory to the operating system -- unclear whether or not we will be doing that
+        * Batching frees for dynamic languages — not something that we need
+        * Returning memory to the operating system — unclear whether or not we will be doing that
         * Collecting the remote thread free lists
         * Collecting the _thread delayed free_ blocks, thus moving pages off of the _full list_. This one is **really** important. Although the idea is conceptually very simple (do not waste time searching for available blocks in pages that are completely full), the introduction of the _full list_ optimization significantly increases the engineering complexity of the allocator and required wrapping my head around *far* more complexity than without it.
 * Q: What if we don't amortize with a deterministic heartbeat? I.e. what if we instead perform local frees directly onto the one singular local free list, and _only_ perform deferred operations _after_ a thread completely runs out of local space?
@@ -238,7 +238,7 @@ However, I **still haven't tested any of this**. There might still be something 
     * [https://preshing.com/20130823/the-synchronizes-with-relation/](https://preshing.com/20130823/the-synchronizes-with-relation/) explaining synchronizes-with.
         * This allocator additionally depends on the rules around _release sequences_, but the explanation [here](https://en.cppreference.com/w/cpp/atomic/memory_order) finally makes sense after understanding everything else.
         * [This](https://stackoverflow.com/questions/38565650/what-does-release-sequence-mean) SO question helped to clarify even further.
-* Our thread creation / termination story is as follows: The heap can only support a hardcoded maximum number of threads. If a thread terminates, nothing happens to any of its memory and none of it is freed. Other threads can keep accessing nodes that exist on its pages. Other threads can also free nodes that exist on the terminated thread's pages, but nothing will ever come around to sweep/collect them anymore. When a thread is created, the code first tries to find an existing "abandoned" set of memory and gives this new thread that memory (only creating a totally new thread shard if that fails). With the envisioned execution model, this should be totally fine -- we will grab `n` threads, do stuff, drop all `n` threads, and then pick up *the same* `n` thread shards (and associated memory) the next time we do stuff.
+* Our thread creation / termination story is as follows: The heap can only support a hardcoded maximum number of threads. If a thread terminates, nothing happens to any of its memory and none of it is freed. Other threads can keep accessing nodes that exist on its pages. Other threads can also free nodes that exist on the terminated thread's pages, but nothing will ever come around to sweep/collect them anymore. When a thread is created, the code first tries to find an existing "abandoned" set of memory and gives this new thread that memory (only creating a totally new thread shard if that fails). With the envisioned execution model, this should be totally fine — we will grab `n` threads, do stuff, drop all `n` threads, and then pick up *the same* `n` thread shards (and associated memory) the next time we do stuff.
 
 ## Netlist and object locking
 
