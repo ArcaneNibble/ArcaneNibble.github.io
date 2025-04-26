@@ -5,13 +5,6 @@
     font-style: normal;
 }
 
-*, *::before, *::after {
-    box-sizing: border-box;
-}
-* {
-    margin: 0;
-}
-
 /* color scheme */
 :root {
     --design-max-width: 1200px;
@@ -42,7 +35,14 @@
 
 /* globals */
 html {
+    box-sizing: border-box;
     font-size: 100%;
+}
+*, *::before, *::after {
+    box-sizing: inherit;
+}
+* {
+    margin: 0;
 }
 
 body {
@@ -100,7 +100,7 @@ pre code {
     pre {
         margin-right: 10em;
     }
-    overflow: scroll;
+    overflow-x: scroll;
 }
 
 /* actual blog posts */
