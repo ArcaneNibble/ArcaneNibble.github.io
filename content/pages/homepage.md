@@ -1,4 +1,6 @@
-Title: About
+Title: Homepage
+url:
+save_as:
 
 Hi, I'm a hacker originally from the San Francisco Bay Area. I'm currently living in London.
 

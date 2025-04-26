@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block canonical_rel %}<link rel="canonical" href="{{ SITEURL }}">{% endblock %}
+{% block sidebar %}{% endblock %}
+
+{% block content %}
+    {% for p in pages %}
+    {% if p.title == 'Homepage' %}
+        {{ p.content }}
+    {% endif %}
+    {% endfor %}
+{% endblock %}

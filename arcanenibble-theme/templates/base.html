@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="{% block html_lang %}{{ DEFAULT_LANG }}{% endblock %}" prefix="og: http://ogp.me/ns#">
+    <head>
+        <title>{% block title %}{{ SITENAME }}{% endblock %}</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        {% block canonical_rel %}{% endblock %}
+
+        <meta name="author" content="{{ AUTHOR }}" />
+        {% block meta_extra %}
+        {% endblock %}
+
+        {% block opengraph %}
+            <meta property="og:site_name" content="{{ SITENAME }}" />
+            <meta property="og:type" content="website"/>
+            <meta property="og:title" content="{{ SITENAME }}"/>
+            <meta property="og:url" content="{{ SITEURL }}"/>
+            <meta property="og:description" content="{{ SITENAME }}"/>
+            {% if OPEN_GRAPH_IMAGE %}
+                <meta property="og:image" content="{{ SITEURL }}/{{ OPEN_GRAPH_IMAGE }}"/>
+            {% endif %}
+        {% endblock %}
+
+        <link rel="stylesheet" href="{{ SITEURL }}/{{ THEME_STATIC_DIR }}/css/style.css" type="text/css"/>
+
+        {% if FEED_ALL_ATOM %}
+            <link href="{{ SITEURL }}/{{ FEED_ALL_ATOM }}" type="application/atom+xml" rel="alternate"
+                  title="{{ SITENAME }} ATOM Feed"/>
+        {% endif %}
+    </head>
+    <body>
+        <header>
+            <nav>
+                <ul>
+                    <li><a href="{{ SITEURL }}/">{{ SITENAME }}</a></li>
+                    <li><a href="{{ SITEURL }}/{{ ARCHIVES_URL | default('archives.html') }}">Blog</a></li>
+                    {% for p in pages | sort(attribute=PAGES_SORT_ATTRIBUTE) %}
+                        {% if p.url %}
+                        <li{% if p == page %} class="active"{% endif %}><a href="{{ SITEURL }}/{{ p.url }}">
+                            {{ p.menulabel|default(p.title) }}
+                        </a></li>
+                        {% endif %}
+                    {% endfor %}
+                    {% for name, link in NAVLINKS %}
+                        <li><a href="{{ link }}" target="_blank">{{ name }}</a></li>
+                    {% endfor %}
+                </ul>
+            </nav>
+        </header>
+        <div id="maindiv">
+            <main>
+                {% block content %}{% endblock %}
+            </main>
+            {% block sidebar %}
+                <div id="sidebar">
+                    sidebar!
+                </div>
+            {% endblock %}
+        </div>
+        <footer>
+            {% if articles %}
+                {% if articles[0].modified %}
+                    {% set copy_date = articles[0].modified.strftime('%Y') %}
+                {% else %}
+                    {% set copy_date = articles[0].date.strftime('%Y') %}
+                {% endif %}
+            {% else %}
+                {% set copy_date = '' %}
+            {% endif %}
+            <div>&copy; {{ copy_date }} {{ AUTHOR }}</div>
+            <p><small>Unless otherwise stated, all articles are published under the <a href="https://creativecommons.org/publicdomain/zero/1.0/legalcode">CC0</a> license.</small></p>
+        </footer>
+    </body>
+</html>
