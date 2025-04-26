@@ -1,3 +1,10 @@
+@font-face {
+    font-family: "IBM VGA 9x16";
+    src: url(../fonts/WebPlus_IBM_VGA_9x16.woff) format("woff");
+    font-weight: normal;
+    font-style: normal;
+}
+
 *, *::before, *::after {
     box-sizing: border-box;
 }
@@ -6,6 +13,79 @@
     margin: 0;
 }
 
+.svgicon {
+    width: 1em;
+    height: 1em;
+}
+
 body {
-    background-color: rebeccapurple;
+    margin: 0 auto;
+    max-width: 1200px;
+    font-family:
+        -apple-system, BlinkMacSystemFont,
+        "Segoe UI",
+        "Liberation Sans",
+        sans-serif;
+}
+code,kbd,pre,samp {
+    font-family:
+        ui-monospace,
+        "Cascadia Mono", "Segoe UI Mono",
+        "Liberation Mono",
+        Menlo, Monaco, Consolas,
+        monospace;
+}
+
+.tophdr {
+    margin: 16px 0;
+}
+.tophdr > nav > ul {
+    display: flex;
+    justify-content: space-evenly;
+    padding: 0;
+    list-style: none;
+
+    li {
+        flex: 1;
+        text-align: center;
+        font-size: 16px;
+        font-family: "IBM VGA 9x16";
+
+        a {
+            text-decoration: none;
+        }
+        a::before {
+            content: "[ ";
+        }
+        a::after {
+            content: " ]";
+        }
+    }
+}
+
+.maindiv {
+    display: flex;
+
+    main {
+        flex: 1;
+        padding: 4px;
+    }
+    .sidebar {
+        flex: 0 0 200px;
+        background-color: rebeccapurple;
+    }
+}
+@media (max-width: 480px) {
+    .maindiv {
+        flex-direction: column;
+
+        .sidebar {
+            flex: 0 0 auto;
+        }
+    }
+}
+
+img {
+    width: 100%;
+    object-fit: scale-down;
 }

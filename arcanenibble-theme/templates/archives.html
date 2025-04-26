@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}Blog - {{ SITENAME }}{% endblock %}
+{% block canonical_rel %}<link rel="canonical" href="{{ SITEURL }}/{{ ARCHIVES_URL | default('archives.html') }}">{% endblock %}
+
+{% block content %}
+    <h1>Posts</h1>
+    <ul class="archives">
+        {% for article in dates %}
+            <li>
+                <a href="{{ SITEURL }}/{{ article.url }}">{{ article.title }}{% if article.subtitle %} - {{ article.subtitle }}{% endif %}</a>
+                {% include "includes/article_date.html" %}
+                <div>{{ article.summary }}</div>
+            </li>
+        {% endfor %}
+    </ul>
+{% endblock %}

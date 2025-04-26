@@ -30,13 +30,13 @@
         {% endif %}
     </head>
     <body>
-        <header>
+        <header class="tophdr">
             <nav>
                 <ul>
-                    <li><a href="{{ SITEURL }}/">{{ SITENAME }}</a></li>
-                    <li><a href="{{ SITEURL }}/{{ ARCHIVES_URL | default('archives.html') }}">Blog</a></li>
+                    <li{% if is_homepage %} class="active"{% endif %}><a href="{{ SITEURL }}/">Home</a></li>
+                    <li{% if is_blogpage %} class="active"{% endif %}><a href="{{ SITEURL }}/{{ ARCHIVES_URL | default('archives.html') }}">Blog</a></li>
                     {% for p in pages | sort(attribute=PAGES_SORT_ATTRIBUTE) %}
-                        {% if p.url %}
+                        {% if p.url and p.is_nav_page %}
                         <li{% if p == page %} class="active"{% endif %}><a href="{{ SITEURL }}/{{ p.url }}">
                             {{ p.menulabel|default(p.title) }}
                         </a></li>
@@ -48,12 +48,12 @@
                 </ul>
             </nav>
         </header>
-        <div id="maindiv">
+        <div class="maindiv">
             <main>
                 {% block content %}{% endblock %}
             </main>
             {% block sidebar %}
-                <div id="sidebar">
+                <div class="sidebar">
                     sidebar!
                 </div>
             {% endblock %}
