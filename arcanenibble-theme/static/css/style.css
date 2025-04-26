@@ -100,7 +100,7 @@ pre code {
     pre {
         margin-right: 10em;
     }
-    overflow-x: scroll;
+    overflow-x: auto;
 }
 
 /* actual blog posts */
