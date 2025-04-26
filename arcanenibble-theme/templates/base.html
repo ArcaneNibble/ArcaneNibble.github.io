@@ -74,6 +74,9 @@
             {% endblock %}
         </div>
         <footer>
+            <div class="buttons">
+                <img width="100%" height="100%" src="{{ SITEURL }}/{{ THEME_STATIC_DIR }}/images/transrights.gif" alt="trans rights animated button">
+            </div>
             {% if articles %}
                 {% if articles[0].modified %}
                     {% set copy_date = articles[0].modified.strftime('%Y') %}

@@ -8,11 +8,11 @@
 *, *::before, *::after {
     box-sizing: border-box;
 }
-
 * {
     margin: 0;
 }
 
+/* color scheme */
 :root {
     --design-max-width: 1200px;
     --design-sidebar-width: 200px;
@@ -40,9 +40,11 @@
     }
 }
 
+/* globals */
 html {
     font-size: 100%;
 }
+
 body {
     margin: 0 auto;
     max-width: var(--design-max-width);
@@ -56,12 +58,8 @@ body {
     color: var(--txt-color);
 }
 code,kbd,pre,samp {
-    font-family:
-        ui-monospace,
-        "Cascadia Mono", "Segoe UI Mono",
-        "Liberation Mono",
-        Menlo, Monaco, Consolas,
-        monospace;
+    font-size: 16px;
+    font-family: "IBM VGA 9x16";
 }
 
 a {
@@ -79,17 +77,16 @@ img {
     object-fit: scale-down;
 }
 
+/* embedded code (monospace) */
 code {
     background-color: #5A5475;
     color: #F8F8F2;
-    font-size: 85%;
     padding: 2px;
     border-radius: 4px;
 }
 pre code {
     background-color: unset;
     color: unset;
-    font-size: unset;
     padding: unset;
     border-radius: unset;
 }
@@ -98,7 +95,6 @@ pre code {
     padding: 4px;
     border-radius: 8px;
     border: 1px solid #888;
-    font-size: smaller;
     line-height: 1.1em;
     max-width: fit-content;
     pre {
@@ -107,6 +103,7 @@ pre code {
     overflow: scroll;
 }
 
+/* actual blog posts */
 main {
     header {
         margin: 1.5rem 0;
@@ -168,6 +165,7 @@ main {
     }
 }
 
+/* nav bar */
 .tophdr {
     margin: 16px 0;
 }
@@ -201,6 +199,7 @@ main {
     }
 }
 
+/* overall layout */
 .maindiv {
     display: flex;
 
@@ -223,6 +222,7 @@ main {
     }
 }
 
+/* all posts page */
 .archives_hdr {
     font-size: 1.75rem;
     font-weight: 500;
@@ -247,6 +247,7 @@ main {
     }
 }
 
+/* sidebar links */
 .sidebar {
     padding: 4px;
     margin-top: 48px;
@@ -270,7 +271,14 @@ main {
     }
 }
 
+/* footer */
 footer {
     font-size: 9px;
     margin-bottom: 2px;
+
+    .buttons img {
+        width: unset;
+        object-fit: none;
+        display: block;
+    }
 }
