@@ -8,6 +8,10 @@ TIMEZONE = 'Etc/UTC'
 
 DEFAULT_LANG = 'en'
 
+# Don't want these pages
+AUTHOR_SAVE_AS = ''
+CATEGORY_SAVE_AS = ''
+
 # Feed generation is usually not desired when developing
 FEED_ALL_ATOM = None
 CATEGORY_FEED_ATOM = None
