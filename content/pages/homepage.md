@@ -2,20 +2,14 @@ Title: Homepage
 url:
 save_as:
 
-Hi, I'm a hacker originally from the San Francisco Bay Area. I'm currently living in London.
+Hi, I'm a human (creature?) who goes by "R" or @<small>Arcane</small><span style="font-family: 'IBM VGA 9x16'">Nibble</span>
 
-Some of you may have known me by other names and handles over the years, but "ArcaneNibble" and "R" are the current ones. `rqou` is retained for backwards compatibility, and all other identities are now deprecated.
+I'm originally from the San Francisco Bay Area, but I'm currently living in London.
 
-I have a wide variety of interests and do many different things, including:
+I'm very experienced with a *wide* range of technologies, including but not limited to cybersecurity, embedded systems, electronics, as well as general software engineering. If you are interested in that, you can either read all about it on my [CV](/cv.html), or you can contact me using any of the methods in the sidebar.
 
-* information security (formerly a member of the Paranoids team at Yahoo!)
-* reverse engineering (initial reverse engineering of the Apple M1 Bluetooth module for Asahi Linux)
-* FPGAs and electronics (reverse engineered the Altera/Intel MAX V in order to write F/OSS tooling)
-* embedded systems (#badgelife, writing firmware)
-* cosplay? (WIP)
+I'm looking for work! I am also open to contracting.
 
-I attended UC Berkeley and have MEng and BS degrees in Electrical Engineering and Computer Science.
+This website is ⚠under construction⚠, but it currently contains [a blog](/archives.html).
 
-Don't hesitate to try to get in touch with me! If I haven't responded, please try again a few more times - I tend to forget about these sorts of things.
-
-I'm looking for work! See my [CV](/cv.html)
+I used to be known as `rqou`, but this is a legacy interface for backwards-compatibility only.
