@@ -1,7 +1,6 @@
 Title: "Introducing our new and updated user experience"
 Date: 2025-04-27
 Summary: You can "just" make a website, y'know
-Status: draft
 
 I just completely redesigned the theme for this website. The theme is now crafted from 100% artisanal, hand-written HTML and CSS, so that it no longer looks like every other generic, somewhat-dated [Bootstrap](https://getbootstrap.com/) page.
 
