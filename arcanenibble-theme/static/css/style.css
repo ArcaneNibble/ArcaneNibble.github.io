@@ -216,6 +216,10 @@ main {
     .maindiv {
         flex-direction: column;
 
+        main {
+            max-width: unset;
+        }
+
         .sidebar {
             flex: 0 0 auto;
         }
