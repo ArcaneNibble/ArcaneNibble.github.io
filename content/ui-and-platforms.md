@@ -15,7 +15,7 @@ For this experiment, I chose to write a program to generate random numbers in a 
 
 The idea behind choosing something "simple" like this was to focus my attention on the "tooling setup" and "basic UI building" functionality of each platform rather than the application logic.
 
-In order to increase the difficulty and place some more attention on "platform integration" functionality, I eventually added the following additional requirements:
+In order to increase the difficulty and place some more attention on "platform integration" functionality, I eventually added the following additional requirements to the GUI applications (i.e. not the command-line ones):
 
 * persistent settings (the number of sides on the dice is saved and reloaded)
 * localization support into at least one non-English language
@@ -118,7 +118,7 @@ Is there a way to make this program "fit in" even better? POSIX has a chapter ti
 
 One convention of many "Unix-style" utilities is that they often produce minimal or even no output in normal situations, and that they normally run in a "one-shot" or "batch" fashion rather than being user-interactive like the "standard C" example. There are reasons for this (such as the ease of constructing shell scripts and pipelines), but *this is an idea which I originally had to learn "orally" many years ago, rather than via more-formalized written means*.
 
-If we try to refactor the code to work this way, one question comes up — what should we do when there's an error (such as an invalid number of sides)? A number of utilities that I use seem to have a common convention for reporting errors, but what actually _is_ this convention? It turns out that this originally came from [the GNU coding standards](https://www.gnu.org/prep/standards/html_node/Errors.html)! I did not know this until this experiment, and the fact that I didn't doesn't reflect well on the success of the mission of the GNU project.
+If we try to refactor the code to work this way, one question comes up — what should we do when there's an error (such as an invalid number of sides)? A number of utilities that I use seem to have a common convention for reporting errors (i.e. printing the name of the program before printing the actual error message), but what actually _is_ this convention? It turns out that this originally came from [the GNU coding standards](https://www.gnu.org/prep/standards/html_node/Errors.html)! I did not know this until this experiment, and the fact that I didn't doesn't reflect well on the success of the mission of the GNU project.
 
 After I finished modifying the code to work in a "Unix-like" "one-shot" fashion, I ran into an issue (that the standard C implementation also shares but manages to hide) — the numbers it generated stopped being random on macOS. It turns out that it isn't actually specified how `rand` actually works under the hood, and the macOS implementation doesn't mix the bits of the seed around very well until you generate at least one random number.
 
@@ -146,6 +146,8 @@ To continue on the point about "conceptual understanding", I _still_ don't under
 
 The debugging experience with the GNOME ecosystem repeatedly resulted in situations of "nothing happened (but something should've), and now I have no idea why". For example, mismatching the types in `g_simple_action_new` vs in the GtkBuilder XML resulted in menu items that were greyed-out and disabled, and I had no idea whether I had written the XML incorrectly, forgot to set an "enable" flag somewhere, or made a different error entirely. Likewise, attempting to set up translations repeatedly resulted in "it just doesn't load the translation", and I had no idea what step in the build process I had missed. (As far as I can tell, translations simply don't work in the "latest" version (which is the default) of the Flatpak SDK. Selecting a different version, such as "48", magically works.)
 
+Persistent settings were stored using GSettings, which is a mechanism for storing typed information according to a schema. In theory, this allows for arbitrary other parts of the desktop environment to interact with and understand a given application's settings. In practice, this didn't work (the settings couldn't actually be found by e.g. command-line tools) for some reason relating to Flatpak, and in fact integrating with GSettings made it no longer possible to launch the program locally for development (it would crash on launch because the schema wasn't properly "installed", although this somehow magically works when building a Flatpak). Yet again, this would be much easier to understand if the documentation were better at explaining _context_, "why?", and overall architecture and vision.
+
 Overall, I _really wish_ GNOME was good! Unfortunately, in its current state, it kinda isn't. What I have heard repeatedly from other people after doing this experiment is that GNOME keeps failing to listen to, communicate with, and value contributions from power users and other "outsiders". In my opinion, it _really_ shows, as many of the struggles I ran into are likely already well-understood and internalized by regular GNOME developers.
 
 # KDE/Qt
@@ -169,6 +171,8 @@ Once I had sorted out (or ignored) all of these errors, developing software usin
 For better or for worse, I believe KDE benefits significantly from Qt being widely used by "ISVs" outside of the Linux desktop ecosystem (e.g. on industrial HMIs and automotive infotainment systems). This commercial interest and Business™ probably yields a lot of opportunities, demand, and money for Qt to document the details needed to create bindings between UI and code.
 
 KDE and Qt tended to be louder with errors, usually at least printing _something_ to the terminal when something went wrong. In one case, errors were even reported by dumping an "ugly" error message directly into UI text. This behavior greatly reduced "nothing happened" debugging frustration.
+
+Persistent settings were stored using KConfig. Unlike GNOME, this doesn't require setting up a schema. Other than the CMake confusion, it was very simple to store and retrieve one single value. In fact, [KDE's documentation](https://develop.kde.org/docs/features/configuration/introduction/) is how I finally managed to learn about the existence of the [XDG Base Directory Specification](https://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html)!
 
 Overall I quite like KDE's "get stuff done" vibe, but I do wish that the "Linux native code" situation was better.
 
@@ -202,6 +206,8 @@ Although I was running it on underpowered hardware, the build pipeline for this 
 
 C++ does not feel like the preferred "language projection" for WinRT, and many of Microsoft's developer resources seem to be encouraging the use of C# instead.
 
+Persistent settings were stored using `Windows::Storage::ApplicationData` which contained several confusingly-different locations for storing key-value pairs. Once I chose the appropriate one (`LocalSettings`), it was straightforward to put a value into it.
+
 Overall, WinUI 3 feels like an "it works, I guess?" technology both befitting and characteristic of Microsoft. It's not the newest, fanciest technology, but it's not really supposed to be. It might indeed help make Business™ Software™ work better. However, especially when considering all of the user-hostile features being constantly added to Windows 11, it's simply not clear why a new developer would or should bother to invest in Microsoft's ecosystem.
 
 # SwiftUI
@@ -218,6 +224,8 @@ This level of tight integration results in something which is fun _to just play 
 
 Apple has also acquired a reputation for churn, and I encountered my share of that as well. I've been quite behind in updating some of my software, and so I did not have access to the SwiftUI [`NavigationStack`](https://developer.apple.com/documentation/swiftui/navigationstack) and had to [emulate it](https://medium.com/better-programming/stack-navigation-on-macos-41a40d8ec3a4). The Apple developer ecosystem doesn't seem to value forward or backward compatibility — a stark contrast to the standard C example or even [Apple of earlier eras](https://en.wikipedia.org/wiki/Macintosh_Plus).
 
+Persistent settings were _extremely_ easy to set up using a `@AppStorage` property. In the same manner as everything else Apple, it works magically as long as you don't question _how_ or _where_ data is stored.
+
 Overall, I really enjoyed my _limited_ time with the developer experience here, and I can understand why at least some people _really like_ the Apple ecosystem as both a user and/or as a developer. Unfortunately, as someone who also very values some of the ideals of the F/OSS movement, I just cannot go all in on Apple, and I can see how restrictive this ecosystem can be and how difficult it would be to reuse anything on other platforms.
 
 # Jetpack Compose
@@ -231,6 +239,8 @@ To be very blunt, Jetpack Compose felt like a very soulless "I wish it were Swif
 Android's documentation is fragmented across API references, cheesy marketing-esque videos, oversimplified "[codelabs](https://developer.android.com/codelabs/basic-android-kotlin-compose-first-app)", an Apple-style "[tutorial](https://developer.android.com/develop/ui/compose/tutorial)", and "[quick guides](https://developer.android.com/develop/ui/compose/quick-guides)". All of these felt almost _intentional_ in how they avoid explaining "how to build a complete app from start to finish". This is _before_ we even touch lower-level APIs, the pre-Jetpack Compose APIs, etc. Despite being the search giant, Google Search often failed to find useful resources when I encountered errors.
 
 In terms of annoyances, for some reason Android Studio seemed quite flaky around dealing with devices and emulators, and attempting to debug exceptions which occur before the app completes launching just doesn't seem to work.
+
+Persistent settings were the _most_ difficult on Android because, unlike every other platform, `androidx.datastore.core.DataStore` is _asynchronous_. I was never quite able to figure out how this was supposed to integrate properly into the Jetpack Compose model, and I eventually gave up and used `runBlocking` to turn it into a synchronous interface.
 
 The Jetpack Compose framework _itself_ seems to work... fine. However, everything about it feels _amazingly unpolished_ for something released by one of the largest tech companies in the world.
 
