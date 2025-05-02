@@ -27,6 +27,12 @@
                 width: 1em;
                 height: 1em;
             }
+            @supports(height: 1cap) {
+                .svgicon {
+                    vertical-align: middle;
+                    margin-top: calc(1ex - 1cap);
+                }
+            }
         </style>
         <link rel="stylesheet" href="{{ SITEURL }}/{{ THEME_STATIC_DIR }}/css/code.css" type="text/css"/>
         <link rel="stylesheet" href="{{ SITEURL }}/{{ THEME_STATIC_DIR }}/css/style.css" type="text/css"/>
