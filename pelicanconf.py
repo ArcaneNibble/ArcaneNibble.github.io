@@ -33,6 +33,7 @@ DEFAULT_PAGINATION = False
 
 STATIC_PATHS = [
     'images',
+    'css',
     'extra',
 ]
 ARTICLE_EXCLUDES = [

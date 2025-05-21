@@ -1,0 +1,27 @@
+@font-face {
+    font-family: 'Emerald';
+    src: url('/css/Emerald.ttf');
+}
+@font-palette-values --Emerald {
+    font-family: 'Emerald';
+    override-colors:
+        0 #c7c7c7,
+        2 #272727;
+}
+@media (prefers-color-scheme: light) {
+    @font-palette-values --Emerald {
+        font-family: 'Emerald';
+        override-colors:
+            0 #383838,
+            2 #d8d8d8;
+    }
+}
+
+p:has(.emerald) {
+    margin-bottom: 0em !important;
+}
+.emerald {
+    font-family: 'Emerald';
+    font-palette: --Emerald;
+    font-size: 24px;
+}
