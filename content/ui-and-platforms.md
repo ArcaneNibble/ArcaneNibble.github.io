@@ -1,5 +1,5 @@
 Title: So you want to write an "app"
-Date: 2025-04-29
+Date: 2025-05-21
 Summary: I touched "every" OS so you don't have to
 Status: draft
 
@@ -11,7 +11,7 @@ This project began with [a live-toot stream](https://glauca.space/@r/11423247423
 
 # The "app"
 
-For this experiment, I chose to write a program to generate random numbers in a user-specified range. This simulates rolling different types of dice with different numbers of sides, as would be used for DnD or other TTRPGs, and would be part of the long tradition of using computers to play games.
+For this experiment, I chose to write a program to generate random numbers in a user-specified range. This simulates rolling different types of dice with different numbers of sides, as would be used for <abbr title="Dungeons &amp; Dragons">DnD</abbr> or other TTRPGs, and would be part of the long tradition of using computers to play games.
 
 The idea behind choosing something "simple" like this was to focus my attention on the "tooling setup" and "basic UI building" functionality of each platform rather than the application logic.
 
@@ -96,7 +96,7 @@ Many developers including myself use "Unix-style" tooling regularly, so a reason
 
 I'm too young to have lived through the era of the ["Unix wars"](https://en.wikipedia.org/wiki/Unix_wars) and needlessly-incompatible differences between vendors, and so I'm lacking a lot of the historical context. However, attempts were at some point made to standardize Unix behavior into an [IEEE](https://en.wikipedia.org/wiki/Institute_of_Electrical_and_Electronics_Engineers) standard called [POSIX](https://en.wikipedia.org/wiki/POSIX). This seems like a direction to start looking!
 
-Except... how does a programmer starting out today even learn about POSIX? _I_ happened to already know about POSIX because I've heard people talk about it over the years. I don't know that a novice programmer would necessarily come across it or believe it to be relevant, especially given the amount of time which as passed and the number of flaws which it has.
+Except... how does a programmer starting out today even learn about POSIX? _I_ happened to already know about POSIX because I've heard people talk about it over the years. I don't know that a novice programmer would necessarily come across it or believe it to be relevant, especially given the amount of time which has passed since the Unix wars and the amount of flaws the standard has (as we shall soon see).
 
 One success of POSIX is that it specifies [`c99`](https://pubs.opengroup.org/onlinepubs/9699919799/utilities/c99.html) as a standard executable name for a C compiler, and it specifies a [portable subset](https://pubs.opengroup.org/onlinepubs/9799919799/utilities/make.html) of [makefiles](https://en.wikipedia.org/wiki/Make_(software)) for building software from source. The subset which is standardized is enough to compile a simple application like ours:
 
@@ -118,15 +118,15 @@ Is there a way to make this program "fit in" even better? POSIX has a chapter ti
 
 One convention of many "Unix-style" utilities is that they often produce minimal or even no output in normal situations, and that they normally run in a "one-shot" or "batch" fashion rather than being user-interactive like the "standard C" example. There are reasons for this (such as the ease of constructing shell scripts and pipelines), but *this is an idea which I originally had to learn "orally" many years ago, rather than via more-formalized written means*.
 
-If we try to refactor the code to work this way, one question comes up — what should we do when there's an error (such as an invalid number of sides)? A number of utilities that I use seem to have a common convention for reporting errors (i.e. printing the name of the program before printing the actual error message), but what actually _is_ this convention? It turns out that this originally came from [the GNU coding standards](https://www.gnu.org/prep/standards/html_node/Errors.html)! I did not know this until this experiment, and the fact that I didn't doesn't reflect well on the success of the mission of the GNU project.
+As we try to refactor the code to work this way, one question comes up — what should we do when there's an error (such as an invalid number of sides)? A number of utilities that I use seem to have a common convention for reporting errors (i.e. printing the name of the program before printing the actual error message), but what actually _is_ this convention? It turns out that this originally came from [the GNU coding standards](https://www.gnu.org/prep/standards/html_node/Errors.html)! I did not know this until this experiment, and the fact that I didn't doesn't reflect well on the success of the mission of the GNU project.
 
-After I finished modifying the code to work in a "Unix-like" "one-shot" fashion, I ran into an issue (that the standard C implementation also shares but manages to hide) — the numbers it generated stopped being random on macOS. It turns out that it isn't actually specified how `rand` actually works under the hood, and the macOS implementation doesn't mix the bits of the seed around very well until you generate at least one random number.
+After I finished modifying the code to work in a "Unix-like" "one-shot" fashion, I ran into an issue during testing (that the standard C implementation also shares but manages to hide better) — the numbers it generated stopped being random, but only on macOS. It turns out that it isn't actually specified how `rand` is implemented under the hood, and the macOS implementation doesn't mix the bits of the seed around very well until you generate at least one random number.
 
 POSIX specifies a different pseudo-random number generator in the form of the `rand48` family of functions. This has well-defined behavior, but it is still not a "good" random number generator. This might not matter for playing TTRPGs, but [it can become a problem when the stakes get higher](https://www.wired.com/2017/02/russians-engineer-brilliant-slot-machine-cheat-casinos-no-fix/).
 
 Unfortunately, "good" random number generators such as [`getrandom(2)`](https://man7.org/linux/man-pages/man2/getrandom.2.html) or [`/dev/urandom`](https://man7.org/linux/man-pages/man4/urandom.4.html) aren't actually specified in POSIX (even though they are reasonably-widely available).
 
-This is a huge problem of slow-to-respond standardization processes! They run the risk of becoming increasingly irrelevant, and the issues which they had hoped to solve (e.g. portability) once again become everybody's problem.
+This is a huge problem of slow-to-respond standardization processes! They run the risk of becoming increasingly irrelevant, and the issues which they had hoped to solve (e.g. portability) once again become everybody's problem. This applies not just to POSIX but to everything, including C's slow efforts to modernize itself.
 
 From this experiment, I've managed to gain a newfound appreciation for people such as [Julia Evans](https://jvns.ca/) who have been continuing to disseminate "basic knowledge" about how operating systems and developer environments work.
 
@@ -146,7 +146,7 @@ To continue on the point about "conceptual understanding", I _still_ don't under
 
 The debugging experience with the GNOME ecosystem repeatedly resulted in situations of "nothing happened (but something should've), and now I have no idea why". For example, mismatching the types in `g_simple_action_new` vs in the GtkBuilder XML resulted in menu items that were greyed-out and disabled, and I had no idea whether I had written the XML incorrectly, forgot to set an "enable" flag somewhere, or made a different error entirely. Likewise, attempting to set up translations repeatedly resulted in "it just doesn't load the translation", and I had no idea what step in the build process I had missed. (As far as I can tell, translations simply don't work in the "latest" version (which is the default) of the Flatpak SDK. Selecting a different version, such as "48", magically works.)
 
-Persistent settings were stored using GSettings, which is a mechanism for storing typed information according to a schema. In theory, this allows for arbitrary other parts of the desktop environment to interact with and understand a given application's settings. In practice, this didn't work (the settings couldn't actually be found by e.g. command-line tools) for some reason relating to Flatpak, and in fact integrating with GSettings made it no longer possible to launch the program locally for development (it would crash on launch because the schema wasn't properly "installed", although this somehow magically works when building a Flatpak). Yet again, this would be much easier to understand if the documentation were better at explaining _context_, "why?", and overall architecture and vision.
+Persistent settings were stored using GSettings, which is a mechanism for storing typed information according to a schema. In theory, this allows for arbitrary other parts of the desktop environment to interact with and understand a given application's settings. In practice, this didn't work (the settings couldn't actually be found by e.g. command-line tools) for some reason relating to Flatpak, and in fact integrating with GSettings made it no longer possible to launch the program locally for development (it would crash on launch because the schema wasn't properly "installed", although this somehow magically works without "installing" the schema when building a Flatpak). Yet again, this would be much easier to understand if the documentation were better at explaining _context_, "why?", and overall architecture and vision.
 
 Overall, I _really wish_ GNOME was good! Unfortunately, in its current state, it kinda isn't. What I have heard repeatedly from other people after doing this experiment is that GNOME keeps failing to listen to, communicate with, and value contributions from power users and other "outsiders". In my opinion, it _really_ shows, as many of the struggles I ran into are likely already well-understood and internalized by regular GNOME developers.
 
@@ -168,21 +168,21 @@ KDE's tutorials unfortunately run headfirst into wider C++ platform problems tha
 
 Once I had sorted out (or ignored) all of these errors, developing software using [Qt](https://www.qt.io/) and [QML](https://doc.qt.io/qt-6/qtqml-index.html) was quite comfortable and straightforward. The details which I had struggled with in GLib/GObject are nicely explained in Qt's [signals and slots](https://doc.qt.io/qt-6/signalsandslots.html) documentation. Although I chose to entirely embrace KDE frameworks, KDE felt like it was less-opinionated and much more open to piecemeal adoption (e.g. many KDE apps do *not* use Kirigami, and I had to specifically _choose_ to even use KConfig).
 
-For better or for worse, I believe KDE benefits significantly from Qt being widely used by "ISVs" outside of the Linux desktop ecosystem (e.g. on industrial HMIs and automotive infotainment systems). This commercial interest and Business™ probably yields a lot of opportunities, demand, and money for Qt to document the details needed to create bindings between UI and code.
+For better or for worse, I believe KDE benefits significantly from Qt being widely used by "ISVs" outside of the Linux desktop ecosystem (e.g. on industrial HMIs and automotive infotainment systems). This commercial interest and Business™ probably yields a lot of opportunities, demand, and money for Qt to document the details needed for creating bindings between UI and code.
 
 KDE and Qt tended to be louder with errors, usually at least printing _something_ to the terminal when something went wrong. In one case, errors were even reported by dumping an "ugly" error message directly into UI text. This behavior greatly reduced "nothing happened" debugging frustration.
 
-Persistent settings were stored using KConfig. Unlike GNOME, this doesn't require setting up a schema. Other than the CMake confusion, it was very simple to store and retrieve one single value. In fact, [KDE's documentation](https://develop.kde.org/docs/features/configuration/introduction/) is how I finally managed to learn about the existence of the [XDG Base Directory Specification](https://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html)!
+Persistent settings were stored using KConfig. Unlike GNOME, this doesn't require setting up a schema. Other than the CMake confusion, it was very simple to store and retrieve one single value. In fact, [KDE's documentation](https://develop.kde.org/docs/features/configuration/introduction/) is how I finally managed to learn about the existence of the [XDG Base Directory Specification](https://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html), which I hadn't ever heard of before!
 
 Overall I quite like KDE's "get stuff done" vibe, but I do wish that the "Linux native code" situation was better.
 
 # Aside: gettext
 
-Much of translation and localization of F/OSS software seems to rely on [gettext](https://www.gnu.org/software/gettext/). Without commenting on the _API_ of it (not being much of a localization expert), I will say that _cultural knowledge_ around this topic is _woefully_ inadequate.
+Much of translation and localization of <span class="nobr">F/OSS</span> software seems to rely on [gettext](https://www.gnu.org/software/gettext/). Without commenting on the _API_ of it (not being much of a localization expert), I will say that _cultural knowledge_ around this topic is _woefully_ inadequate.
 
 The [GNOME documentation](https://developer.gnome.org/documentation/guidelines/localization.html) is completely useless for anyone who has not actually used *nix localization tools before and has not heard of gettext (i.e. me, before having done this experiment), and it took me a very long time to figure out that relevant setup work needed was documented [by  Meson](https://mesonbuild.com/Localisation.html), the build system, rather than by GNOME.
 
-The [KDE documentation](https://develop.kde.org/docs/plasma/widget/translations-i18n/) on the other hand is for some reason buried under the tutorial for building Plasma widgets or else on [the aforementioned other wiki](https://techbase.kde.org/Development/Tutorials/Localization/i18n_Build_Systems/Outside_KDE_repositories).
+The [KDE documentation](https://develop.kde.org/docs/plasma/widget/translations-i18n/) on the other hand is for some reason buried under the tutorial for building Plasma widgets (rather than somewhere more general) or else on [the aforementioned other wiki](https://techbase.kde.org/Development/Tutorials/Localization/i18n_Build_Systems/Outside_KDE_repositories).
 
 As someone who is multilingual (although I do all of my tech work in English), I am going to be _so much_ louder about i18n/l10n after this experiment.
 
@@ -190,9 +190,9 @@ As someone who is multilingual (although I do all of my tech work in English), I
 
 ![screenshot of WinUI 3 app]({static}/images/ui-winui.png)
 
-In the interest of time, after trying out both GNOME and KDE, I moved on from F/OSS desktops to try out Microsoft's [WinUI 3](https://learn.microsoft.com/en-us/windows/apps/winui/winui3/) and [C++/WinRT](https://en.wikipedia.org/wiki/C%2B%2B/WinRT). As mentioned, my past experience with GUIs was with WinForms, and so I wanted to see what had changed or improved in the intervening years.
+In the interest of time, after trying out both GNOME and KDE, I moved on from <span class="nobr">F/OSS</span> desktops to try out Microsoft's [WinUI 3](https://learn.microsoft.com/en-us/windows/apps/winui/winui3/) and [C++/WinRT](https://en.wikipedia.org/wiki/C%2B%2B/WinRT). As mentioned, my past experience with GUIs was with WinForms, and so I wanted to see what had changed or improved in the intervening years.
 
-Immediately, I noticed and appreciated the advantages of [XAML](https://en.wikipedia.org/wiki/Extensible_Application_Markup_Language) responsive layout over the fixed pixel or DLU (dialog unit) layout of older Win32. This idea of auto-sizing has been almost universally adopted by every UI toolkit as screen sizes have become more varied.
+Immediately, I noticed and appreciated the advantages of [XAML](https://en.wikipedia.org/wiki/Extensible_Application_Markup_Language) responsive layout over the fixed pixel or DLU (dialog unit) layout of older Win32. This idea of auto-sizing has been almost universally adopted by every UI toolkit as screen sizes have become more varied. (Every other GUI toolkit in this experiment has automatic layout. This is notable only because I had prior experience with older fixed-layout toolkits on Windows.)
 
 Unlike the previous frameworks I tried, the WinUI and C++/WinRT build process also catches and prevents a lot of errors which might otherwise occur with "stringly-typed" UI builders. Visual Studio's debugging functionality (e.g. the XAML live viewer) also works reasonably well.
 
@@ -226,7 +226,7 @@ Apple has also acquired a reputation for churn, and I encountered my share of th
 
 Persistent settings were _extremely_ easy to set up using a `@AppStorage` property. In the same manner as everything else Apple, it works magically as long as you don't question _how_ or _where_ data is stored.
 
-Overall, I really enjoyed my _limited_ time with the developer experience here, and I can understand why at least some people _really like_ the Apple ecosystem as both a user and/or as a developer. Unfortunately, as someone who also very values some of the ideals of the F/OSS movement, I just cannot go all in on Apple, and I can see how restrictive this ecosystem can be and how difficult it would be to reuse anything on other platforms.
+Overall, I really enjoyed my _limited_ time with the developer experience here, and I can understand why at least some people _really like_ the Apple ecosystem as both a user and/or as a developer. Unfortunately, as someone who also very values some of the ideals of the <span class="nobr">F/OSS</span> movement, I just cannot go all in on Apple, and I can see how restrictive this ecosystem can be and how difficult it would be to reuse anything on other platforms.
 
 # Jetpack Compose
 
