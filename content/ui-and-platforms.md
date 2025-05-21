@@ -1,7 +1,6 @@
 Title: So you want to write an "app"
 Date: 2025-05-21
 Summary: I touched "every" OS so you don't have to
-Status: draft
 
 After writing that (no-longer-)recent [post]({filename}web-app-history-notes.md) on web development, I wanted to get a personal "feel" for what the "new developer experience" is actually like across all of the current platforms if you _don't_ resort to web tech such as Electron.
 
