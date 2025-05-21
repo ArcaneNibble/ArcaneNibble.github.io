@@ -17,9 +17,6 @@
     }
 }
 
-p:has(.emerald) {
-    margin-bottom: 0em !important;
-}
 .emerald {
     font-family: 'Emerald';
     font-palette: --Emerald;

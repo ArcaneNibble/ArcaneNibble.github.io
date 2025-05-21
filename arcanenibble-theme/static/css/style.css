@@ -80,6 +80,9 @@ img {
 .nobr {
     white-space: nowrap;
 }
+p:has(.nopad) {
+    margin-bottom: 0em !important;
+}
 
 /* embedded code (monospace) */
 code {
