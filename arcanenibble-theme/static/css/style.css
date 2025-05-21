@@ -77,6 +77,10 @@ img {
     object-fit: scale-down;
 }
 
+.nobr {
+    white-space: nowrap;
+}
+
 /* embedded code (monospace) */
 code {
     background-color: #5A5475;
