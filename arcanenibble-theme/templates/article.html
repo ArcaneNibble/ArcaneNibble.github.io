@@ -11,6 +11,9 @@
     {% if article.summary %}
         <meta name="description" content="{{ article.summary|striptags|escape }}" />
     {% endif %}
+    {% if article.custom_stylesheet %}
+        <link rel="stylesheet" href="{{ SITEURL }}/{{ article.custom_stylesheet }}" type="text/css"/>
+    {% endif %}
 {% endblock %}
 
 {% block opengraph %}
