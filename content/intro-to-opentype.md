@@ -98,13 +98,15 @@ The font I have created here also uses `fonttools`, as it is generated programma
 
 # Tracing pixel outlines
 
-For this exercise, I've converted a bitmap font into a scalable vector font file. Because enough time has passed since the introduction of vector typefaces (on personal computing devices and outside of the "publishing" world), the pixellated appearance of bitmap fonts is no longer a limitation but is now an _intentional_ design choice to evoke a retro, nostalgic appearance. As such, we want to perform a conversion so that the typeface remains blocky and pixellated even as it scales to larger sizes:
+To bring this font into the world of OpenType, we need to convert it from a bitmap font. Because enough time has passed since the introduction of vector typefaces (on personal computing devices and outside of the "publishing" world), the pixellated appearance of bitmap fonts is no longer a limitation but is now an _intentional_ design choice to evoke a retro, nostalgic appearance. As such, we want to perform a conversion so that the typeface remains blocky and pixellated even as it scales to larger sizes:
 
 <span class="emerald" style="font-size: 160px; line-height: 1em;">ABCD</span>
 
-Because this font was designed for a device with a tiny screen, <span class="emerald" style="font-size: 16px">the result also scales quite well down to _small_ sizes while remaining readable</span>. Being an OpenType vector font also allows rendering engines to synthesize an italic form which never originally existed.
+Because this font was designed for a device with a tiny screen, <span class="emerald" style="font-size: 16px">the result also scales quite well down to _small_ sizes while remaining readable</span>. Being an OpenType vector font also allows rendering engines to synthesize an italic form which never originally existed. This italic form can take advantage of modern high-DPI displays.
 
-The naive way to implement this might be to take the input bitmap font and, for each pixel which is filled, emit individual closed square path shapes.
+Overall, this is far more than a bitmap font could have ever been, back in the day!
+
+The naïve way to trace pixels into outlines might be to take the input bitmap font and, for each pixel which is filled, emit individual closed square path shapes.
 
 Unfortunately, rasterizers tend to not like this. Doing this tends to result in tiny gaps between the pixels, even if I try to make the pixels slightly bigger to try to force them to overlap:
 
@@ -151,7 +153,7 @@ Adobe came up with an idea for color vector fonts by storing SVG data inside Ope
 
 The most widely supported technology which is actually usable in browsers is [Microsoft's](https://learn.microsoft.com/en-us/typography/opentype/spec/colr) `COLR` and `CPAL` tables, and this is what I've used here. Fundamentally, the way this works is to break up each glyph into separate layers, one for each color. In this font, this means that one glyph contains the black "actual" pixels and a second glyph contains only the text shadow pixels.
 
-The `COLR` table is used to indicate which layers to draw for each individual glyph and which palette entries to use for those layers. The `CPAL` table contains one or more palette choices which the type designer has determined ought to look good. The font I've created only contains a single palette, but, on the Web, CSS rules can be used to manually override individual colors. For example, <span class="emerald" style="font-palette: --Emerald-ugly">shadows can be green!?</span> <span class="emerald" style="font-palette: --Emerald-noshadow">They can also be disabled by setting them to #00000000.</span>
+The `COLR` table is used to indicate which layers to draw for each individual glyph and which palette entries to use for those layers. The `CPAL` table contains one or more palette choices which the type designer has determined ought to look good. The font I've created only contains a single palette, but, on the Web, `@font-palette-values` CSS rules can be used to manually override individual colors. For example, <span class="emerald" style="font-palette: --Emerald-ugly">shadows can be green!?</span> <span class="emerald" style="font-palette: --Emerald-noshadow">They can also be disabled by setting them to #00000000.</span>
 
 This usage of color layers is certainly a bit of a gimmick, but it allows for tricks such as the tiny red pixels which tell a user to press the <span class="emerald" style="font-size: 48px">d‍p‍a‍d‍l‍r</span> directions on the d-pad.
 
@@ -161,13 +163,15 @@ I actually snuck in a little trick in that <span class="emerald">#00000000</span
 
 Some of these choices might be subjective and depend on how a type designer interprets the typeface and the Unicode standard. For example, I've chosen to map the <span class="emerald">¤</span> symbol to the codepoint `U+00A4` <span style="font-variant: all-small-caps">CURRENCY SIGN</span>. This is semantically appropriate but differs from the normal rendering of the codepoint in most fonts. (On the other hand, <span class="emerald">円</span> is mapped to its usual CJK unified ideograph codepoint at `U+5186`)
 
-As for the problem of not containing _enough_ characters, this font actually doesn't originally contain <span class="emerald">#</span>. It also doesn't contain ordinary non-fancy quotes (`'"`), brackets (`[]{}`), or several other ASCII characters. Although it's possible to leave them out, font fallback can end up choosing something which looks _very_ incongruous. In this case, I have actually custom-designed some glyphs for these characters (trying to maintain the look of the original typeface): <span class="emerald">"#$'*[\\]^\_{|}</span>. I've also designed many custom glyphs by piecing together and modifying existing components (e.g. letters, accents) in order to improve coverage for European languages. This means that you can now write <span class="emerald">ő</span> if you're from Hungary, <span class="emerald">ŵ</span> if you're from Wales, <span class="emerald">ð</span> if you're from Iceland, etc.
+As for the problem of not containing _enough_ characters, this font actually doesn't originally contain <span class="emerald">#</span>. It also doesn't contain ordinary non-fancy quotes (`'"`), brackets (`[]{}`), or several other ASCII characters. Although it's possible to leave them out, font fallback can end up choosing something which looks _very_ incongruous. In this case, I have custom-designed some glyphs for these characters (trying to maintain the look of the original typeface): <span class="emerald">"#$'*[\\]^\_{|}</span>. I've also designed many custom glyphs by piecing together and modifying existing components (e.g. letters, accents) in order to improve coverage for European languages. This means that you can now write <span class="emerald">ő</span> if you're from Hungary, <span class="emerald">ŵ</span> if you're from Wales, <span class="emerald">ð</span> if you're from Iceland, etc.
 
 # Ligatures
 
 Creative interpretation of the Unicode specification can handle many symbols, but what can you do if you _really_ wanted to become a <span class="emerald nobr">P‍kM‍n TRAINER</span>? Or if your pet _really_ loves the taste of <span class="emerald">P‍oK‍eB‍LO‍CK‍.s</span>? Or if you're merely celebrating reaching <span class="emerald">L‍v100</span>?
 
 I've chosen to encode these by using [zero-width joiner](https://en.wikipedia.org/wiki/Zero-width_joiner) sequences, which are probably best known in English for being used to combine sequences of emoji such as 👨‍👩‍👦 out of `U+1F468` <span style="font-variant: all-small-caps">MAN</span> + ZWJ + `U+1F469` <span style="font-variant: all-small-caps">WOMAN</span> + ZWJ + `U+1F466` <span style="font-variant: all-small-caps">BOY</span>. In this case, this means that <span class="emerald">Pk</span> becomes <span class="emerald">P‍k</span> when a ZWJ character is inserted in the middle.
+
+Yes, this means that you can also create your own emoji ZWJ sequences, as long as you can get users to use your font file. Want custom flags? Facial features? Skin tones? You don't _have to_ wait for Apple nor the Unicode Consortium.
 
 Configuring all of this requires using the very complicated `GSUB` [glyph substitution](https://learn.microsoft.com/en-us/typography/opentype/spec/gsub) capability. Fundamentally, this capability allows for replacing certain sequences of glyphs with certain other sequences of glyphs, but only within an appropriate context (which can include surrounding glyphs, an appropriate language, a user setting, or other parameters). For example, in traditional Latin script typography, sequences such as "<span style="font-variant: common-ligatures">fi</span>" might _optionally_ get replaced with a form where the "f" overlaps the dot of the "i". Arabic and Indic scripts might _require_ various substitutions, but only given certain surrounding letters.
 
@@ -187,7 +191,7 @@ This allows us to specify variations like this: <span class="emerald">♂︀♂�
 
 In `GSUB` tables, it is possible to define language-specific character substitutions like the following: <span lang="ja" class="emerald">I wish this text was in <span class="nobr">にほんご</span>!</span>
 
-This is tagged using a `lang="ja"` attribute in HTML and uses the `locl` feature and `JAN` (Japanese) Language System (LangSys) in OpenType. I've mapped the standard 26 Latin letters, the digits 0-9, and the ?! punctuation to their fullwidth glyph variants, which is what would happen in a Japanese edition of the games. I've also mapped many of the special glyphs and ligatures to their Japanese variants, but I _haven't_ mapped e.g. the period . to the ideographic full stop 。 as these characters are semantically different.
+This is tagged using a `lang="ja"` attribute in HTML and uses the `locl` feature and `JAN` (Japanese) Language System (LangSys) in OpenType. I've mapped the standard 26 Latin letters, the digits 0-9, and the ?! punctuation to their fullwidth glyph variants, which is what would happen in a Japanese edition of the game. I've also mapped many of the special glyphs and ligatures to their Japanese variants, but I _haven't_ mapped e.g. the period . to the ideographic full stop 。 as these characters are semantically different.
 
 If this is undesired, `font-feature-settings: 'locl' 0` in CSS can be used to disable it: <span lang="ja" class="emerald" style="font-feature-settings: 'locl' 0">I wish this text was in <span class="nobr">にほんご</span>!</span>
 
@@ -198,3 +202,7 @@ Default glyphs, followed by forced-Latin, followed by forced-JP, language tag `j
 Default glyphs, followed by forced-Latin, followed by forced-JP, language tag `en`: <span lang="en" class="emerald">♂♀L‍vP‍PI‍D🡅 ♂︀♀︀L‍v︀P‍P︀I‍D︀🡅︀ ♂︁♀︁L‍v︁P‍P︁I‍D︁🡅︁</span>
 
 Some complexity and compatibility issues can occur here because different systems may process these OpenType features in different orders. For the most part, for "standard" scripts, features are processed in the order in which "lookups" are defined in the `GSUB` table. However, complex scripts will always process certain features before certain others. Consult the [Microsoft script development specs](https://learn.microsoft.com/en-us/typography/script-development/standard) for more details.
+
+# Have fun!
+
+<span class="emerald">WALLACE: Come on, let's record your<br>name as a HACKER who triumphed over<br>digital typography, and the lines of<br>horrible Python which battled with you.</span>
