@@ -30,7 +30,7 @@ In other jurisdictions such as Germany and the United Kingdom, typefaces _are_ c
 
 However, more importantly, I think it is valuable to consider what the _purpose_ of copyright is nominally "supposed to" be. Is it _useful_ to _preemptively_ restrict yourself from participating in building and remixing culture? Especially when a lot of modern culture is owned by large corporate entities?
 
-tl;dr we're going to <abbr title="fuck around find out">FAFO</abbr>
+tl;dr we're going to <abbr title="fuck around find out">FAFO</abbr>, but bitmap/pixel fonts are probably okay
 
 # What is a font?
 
@@ -103,9 +103,9 @@ We can then use the following algorithm to turn pixels into paths:
 
 DRAWINGS!!!
 
-For debugging, this output can be converted to an SVG. However, *do* note that SVG and OpenType have a different coordinate system (SVG uses a "computer graphics" convention with the y-axis pointing down, whereas OpenType uses a "mathematics" convention with the y-axis pointing up).
+For debugging, this output can be converted to an SVG and opened in tools such as Inkscape. However, *do* note that SVG and OpenType have a different coordinate system (SVG uses a "computer graphics" convention with the y-axis pointing down, whereas OpenType uses a "mathematics" convention with the y-axis pointing up).
 
-SCREENSHOT?
+<img src="{static}/images/font-trace-svg.png" alt="font SVG debug output in inkscape, with path points visible" class="nopad" style="max-width: 484px">
 
 # Colors
 
