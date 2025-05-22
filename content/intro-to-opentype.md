@@ -146,3 +146,9 @@ Finally, how do we handle the situation where the game's Latin and Japanese font
 These characters have a number of uses including specifying minor variations in <abbr title="Chinese, Japanese, Korean, Vietnamese">CJKV</abbr> characters which do not have separate codepoints (i.e. they are semantically "the same" character, but different forms may be preferred in different countries). However, once again we are free to define our own nonstandard ones, and they will be stored in a special part of the `cmap` table.
 
 This allows us to specify variations like this: <span class="emerald">♂♂︁♀♀︁</span>. The second character in each pair comes from the Japanese font, and they are accessed by adding `U+FE01` <span style="font-variant: all-small-caps">VARIATION SELECTOR-2</span> after the character (`U+FE00` selects the default character and does nothing).
+
+# Language-dependent substitutions
+
+In `GSUB` tables, it is possible to define language-specific character substitutions like the following: <span lang="ja" class="emerald">I wish I were Japanese!</span>
+
+This is tagged using a `lang="ja"` attribute in HTML and uses the `locl` feature and `JAN` Language System (LangSys) in OpenType, and I've mapped the standard 26 Latin letters, the digits 0-9, and the ?! punctuation to their fullwidth glyph variants. It is possible to map _all_ symbols to their Japanese variants (not requiring variation selectors), but doing so nicely requires further font programming that I haven't done yet.
