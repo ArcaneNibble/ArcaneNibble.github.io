@@ -16,7 +16,7 @@ custom_stylesheet: css/emerald.css
 
 Not sure what just happened there…
 
-In all seriousness, this page uses a font which has been derived from that used in the later <span class="emerald">POKéMON</span> Generation III games. I've converted it to OpenType and made use of several "advanced typography" features along the way. In this article I hope to show off OpenType functionality which might not be widely known and how they can be applied even for Latin script.
+In all seriousness, this page uses a font which has been derived from that used in the later <span class="emerald">POKéMON</span> Generation III games. I've converted it to OpenType and made use of several "advanced typography" features along the way. In this article I hope to show off OpenType, HTML, and CSS functionality which might not be widely known and how they can be applied even for Latin script.
 
 # Can you even do this?!
 
@@ -62,7 +62,7 @@ Because a bitmap font contains information only at a given resolution, it doesn'
 
 Separate from these systems which were just trying to "get something done", people were of course trying to digitize the traditional process of typography and typesetting. After many ideas were tried and _much_ commercial competition occurred (between companies such as Apple, Adobe, and Microsoft), the situation culminated in a compromise file format called [OpenType](https://en.wikipedia.org/wiki/OpenType).
 
-OpenType originally consisted of Microsoft extensions to Apple's TrueType format (the origin of the `.ttf` extension). TrueType itself was a competitor to Adobe's PostScript fonts. As a compromise format, OpenType can use _either_ TrueType-style glyph outlines _or_ PostScript-style glyph outlines. OpenType has continued to evolve as users demanded more and more of digital typography and desktop publishing.
+OpenType originally consisted of Microsoft extensions to Apple's TrueType format (the origin of the `.ttf` extension). TrueType itself was a competitor to Adobe's PostScript fonts. As a compromise format, OpenType can use _either_ TrueType-style glyph outlines _or_ PostScript-style glyph outlines. OpenType has since continued to evolve as users demanded more and more of digital typography and desktop publishing.
 
 (If you are familiar with <abbr title="Web Open Font Format">WOFF</abbr>, it is merely a compressed variant of OpenType.)
 
@@ -94,15 +94,15 @@ If you are comfortable with Python and the command line, the [fonttools](https:/
     …
 ```
 
-The font I have created here also uses `fonttools`, as it is generated programmatically rather than being edited in GUI font editor software.
+The process of creating this font from bitmap images also relies on `fonttools`, as the entire process is done programmatically rather than being edited in GUI font editor software.
 
 # Tracing pixel outlines
 
-To bring this font into the world of OpenType, we need to convert it from a bitmap font. Because enough time has passed since the introduction of vector typefaces (on personal computing devices and outside of the "publishing" world), the pixellated appearance of bitmap fonts is no longer a limitation but is now an _intentional_ design choice to evoke a retro, nostalgic appearance. As such, we want to perform a conversion so that the typeface remains blocky and pixellated even as it scales to larger sizes:
+To bring this font into the world of OpenType, we need to convert it from a bitmap font. Because enough time has passed since the introduction of vector typefaces (on personal computing devices and outside of the "publishing" world), the pixellated appearance of bitmap fonts is no longer a limitation but is now an _intentional_ design choice to evoke a retro, nostalgic appearance. As such, we want to perform the conversion so that the typeface remains blocky and pixellated even as it scales to larger sizes:
 
 <span class="emerald" style="font-size: 160px; line-height: 1em;">ABCD</span>
 
-Because this font was designed for a device with a tiny screen, <span class="emerald" style="font-size: 16px">the result also scales quite well down to _small_ sizes while remaining readable</span>. Being an OpenType vector font also allows rendering engines to synthesize an italic form which never originally existed. This italic form can take advantage of modern high-DPI displays.
+Because this font was designed for a device with a tiny screen, <span class="emerald" style="font-size: 16px">the result also scales quite well down to _small_ sizes while remaining readable</span>. Being an OpenType vector font also allows rendering engines to synthesize an italic form which never originally existed. This italic form can take advantage of modern high-DPI displays and _isn't_ restricted to the same pixel grid as the original bitmap glyphs.
 
 Overall, this is far more than a bitmap font could have ever been, back in the day!
 
@@ -177,7 +177,7 @@ Configuring all of this requires using the very complicated `GSUB` [glyph substi
 
 In this font, I placed all of the ZWJ sequences inside the `rlig` (required ligatures) OpenType feature which should always be enabled for Latin script.
 
-For something which _really_ abuses ZWJ sequences, gamepad icons can be referred to by inserting multiple ZWJs in a magic code such as `btnst` in order to tell the user to press the <span class="emerald" style="font-palette: --Emerald-light; background-color: #df73ff;">&nbsp;b‍t‍n‍s‍t&nbsp;</span> button.
+For something which _really_ abuses ZWJ sequences, gamepad icons can be referred to by inserting multiple ZWJs in a magic code such as `btnst` in order to tell the user to press the <span class="emerald" style="font-palette: --Emerald-light">&nbsp;b‍t‍n‍s‍t&nbsp;</span> button.
 
 # Variation Selectors
 
