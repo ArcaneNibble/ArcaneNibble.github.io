@@ -54,21 +54,27 @@ For now, let's skip ahead and over all of the early history of digital typograph
 
 <small>Commodore 64, IBM VGA, and Pokémon Generation II fonts</small>
 
-Many of these systems had hardwired logic for rendering "characters" or "tiles". In some cases, the shape of these characters was fixed into a <abbr title="Read Only Memory">ROM</abbr>, and in other cases they were configurable. However, these systems would in all cases render text as fundamentally composed of fixed-sized rectangles. It wasn't easy (or sometimes even possible) to render text at different sizes. Scaling up a bitmap font means that it'll stay blocky and pixellated.
+Many of these systems had hardwired logic for rendering "characters" or "tiles". In some cases, the shape of these characters was fixed into a <abbr title="Read Only Memory">ROM</abbr>, and in other cases they were reconfigurable. However, these systems would in all cases render text as fundamentally composed of fixed-sized rectangles. It wasn't easy (or sometimes even possible) to render text at different sizes. Essentially, these systems only supported one single font.
+
+The typefaces and fonts on some of these systems might've been designed by a "real designer" trying to optimize for readability, but it is just as possible that fonts on these systems were designed by a harried game programmer or electrical engineer.
+
+Because a bitmap font contains information only at a given resolution, it doesn't scale nicely to other sizes. Scaling up either results in it becoming blurry or increasingly blocky and pixellated. Solving this problem requires the use of _vector graphics_.
 
 ## OpenType
 
-Separate from these systems which were just trying to "get something done", people were of course trying to digitize the traditional process of typography and typesetting. After many ideas were tried and _much_ commercial competition occurred, this culminated in a compromise file format called [OpenType](https://en.wikipedia.org/wiki/OpenType). This file format then continued to evolve as users demanded more and more of digital typography and desktop publishing.
+Separate from these systems which were just trying to "get something done", people were of course trying to digitize the traditional process of typography and typesetting. After many ideas were tried and _much_ commercial competition occurred (between companies such as Apple, Adobe, and Microsoft), the situation culminated in a compromise file format called [OpenType](https://en.wikipedia.org/wiki/OpenType). This file format has continued to evolve as users demanded more and more of digital typography and desktop publishing.
 
-In a typical font file, OpenType describes a typeface using [Bézier curves](https://en.wikipedia.org/wiki/B%C3%A9zier_curve). This can be rendered, or _rasterized_, at different sizes and resolutions. Using other advanced features, the typeface can also change in _weight_ (thickness) or other parameters, all of which would have previously required different fonts. Controlling all of this is all sorts of metadata, tables, and, in many cases, code.
+In a typical font file, OpenType describes a typeface using [Bézier curves](https://en.wikipedia.org/wiki/B%C3%A9zier_curve), which are a particularly common form of vector graphics. These curves can be rendered, or _rasterized_, at different sizes and resolutions. Using other advanced features (_variable fonts_), the typeface can also change in _weight_ (thickness) or other parameters, all of which would have previously required different fonts. This means that a single _font file_ can now describe an entire typeface or even a _family_ of related typefaces, and the entire process is _well_ removed from dealing with cases full of physical type sorts.
+
+Controlling all of this is all sorts of metadata, tables, and, in many cases, code. In the rest of this article, we will be exploring some of what can be done with this.
 
 # Tracing pixel outlines
 
-On this page, I've converted a bitmap font into a scalable vector font file. Because enough time has passed since the introduction of vector typefaces (on personal computing devices and outside of the "publishing" world), the pixellated appearance of bitmap fonts is no longer a limitation but is now an _intentional_ design choice to evoke a retro, nostalgic appearance. As such, we want to perform a conversion so that the typeface remains blocky and pixellated even as it scales to larger sizes:
+For this exercise, I've converted a bitmap font into a scalable vector font file. Because enough time has passed since the introduction of vector typefaces (on personal computing devices and outside of the "publishing" world), the pixellated appearance of bitmap fonts is no longer a limitation but is now an _intentional_ design choice to evoke a retro, nostalgic appearance. As such, we want to perform a conversion so that the typeface remains blocky and pixellated even as it scales to larger sizes:
 
 <span class="emerald" style="font-size: 160px; line-height: 1em;">ABCD</span>
 
-Because this font was designed for a device with a tiny screen, <span class="emerald" style="font-size: 16px">it also scales quite well down to _small_ sizes while remaining readable</span>. Being an OpenType vector font also allows rendering engines to synthesize an italic form which never originally existed.
+Because this font was designed for a device with a tiny screen, <span class="emerald" style="font-size: 16px">the result also scales quite well down to _small_ sizes while remaining readable</span>. Being an OpenType vector font also allows rendering engines to synthesize an italic form which never originally existed.
 
 The naive way to implement this might be to take the input bitmap font and, for each pixel which is filled, emit individual closed square path shapes.
 
@@ -78,30 +84,30 @@ Unfortunately, rasterizers tend to not like this. Doing this tends to result in 
 
 <small>From a previous attempt at making an icon font from game sprites</small>
 
-To try to fix this, we need to fuse adjacent pixels together and generate a single path for each contiguous region. I'm not sure whether or not this is a well-known computer graphics algorithm (I couldn't find a reference), so I've invented my own.
+To fix this, we need to fuse adjacent pixels together and generate a single path for each contiguous region. I'm not sure whether or not this is a well-known computer graphics algorithm (I couldn't find a reference), so I've invented my own.
 
 The first step is to scan through a bitmap row-by-row and pixel-by-pixel. For each pixel, we mark which sides of the outline should end up in the final output. For an empty pixel, this is none of them. For a filled pixel, this starts out as all four sides. The code then checks whether the pixel above or to the left are also filled. If so, the shared side is unset on _both_ this pixel and the other pixel.
 
-DRAWING HERE
+<img src="{static}/images/font-dwg-pixels.svg" alt="Hand-drawn diagram of the algorithm step which unsets the sides of connected pixels" class="needsbg" style="padding: 8px">
 
 After this step, we have various tiny path fragments which need to be joined end-to-end in order to form valid vector graphics paths. We had also previously been ignoring direction (clockwise or counterclockwise), but we need to pay attention now because OpenType only fills _clockwise_ paths (and counterclockwise paths can be used to cut holes out of a filled region, such as in the letter "O"). In order to help with the next step, we prepare a few more data structures.
 
 First of all, we take all of the path fragments and their directions and collect them into a big list.
 
-DRAWING HERE
+<img src="{static}/images/font-dwg-pathsegs.svg" alt="Hand-drawn diagram of the algorithm step which creates a list of path fragments" class="needsbg" style="padding: 8px">
 
 Second, for each point _between_ pixels, we store the path fragments which interact with that point.
 
-DRAWING HERE
+<img src="{static}/images/font-dwg-pathfrags.svg" alt="Hand-drawn diagram of the algorithm step which determines the path fragments at each point" class="needsbg" style="padding: 8px">
 
 We can then use the following algorithm to turn pixels into paths:
 
 1. Start with an arbitrary path fragment. Make its endpoint the current point.
-2. At the current point, determine what directions the algorithm can follow by using the second data structure. Pick amongst the choices in a fixed way.
-3. If the direction changed, add a control point. If the direction did not change, replace the current point.
+2. At the current point, determine what directions the algorithm can follow by using the "fragments associated with every point between pixels" array. If there are multiple choices, prefer a clockwise turn in order to properly maintain the clockwise path direction.
+3. If the direction changed, add a control point. If the direction did not change, replace the current point (making the current straight line longer).
 4. When all path fragments have been used, the algorithm is complete.
 
-DRAWINGS!!!
+<img src="{static}/images/font-dwg-pathfollow.svg" alt="Hand-drawn diagram of the algorithm following path fragments" class="needsbg" style="padding: 8px">
 
 For debugging, this output can be converted to an SVG and opened in tools such as Inkscape. However, *do* note that SVG and OpenType have a different coordinate system (SVG uses a "computer graphics" convention with the y-axis pointing down, whereas OpenType uses a "mathematics" convention with the y-axis pointing up).
 
