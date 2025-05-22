@@ -62,7 +62,9 @@ Because a bitmap font contains information only at a given resolution, it doesn'
 
 ## OpenType
 
-Separate from these systems which were just trying to "get something done", people were of course trying to digitize the traditional process of typography and typesetting. After many ideas were tried and _much_ commercial competition occurred (between companies such as Apple, Adobe, and Microsoft), the situation culminated in a compromise file format called [OpenType](https://en.wikipedia.org/wiki/OpenType). This file format has continued to evolve as users demanded more and more of digital typography and desktop publishing.
+Separate from these systems which were just trying to "get something done", people were of course trying to digitize the traditional process of typography and typesetting. After many ideas were tried and _much_ commercial competition occurred (between companies such as Apple, Adobe, and Microsoft), the situation culminated in a compromise file format called [OpenType](https://en.wikipedia.org/wiki/OpenType).
+
+OpenType originally consisted of Microsoft extensions to Apple's TrueType format (the origin of the `.ttf` extension). TrueType itself was a competitor to Adobe's PostScript fonts. As a compromise format, OpenType can use _either_ TrueType-style glyph outlines _or_ PostScript-style glyph outlines. OpenType has continued to evolve as users demanded more and more of digital typography and desktop publishing.
 
 In a typical font file, OpenType describes a typeface using [Bézier curves](https://en.wikipedia.org/wiki/B%C3%A9zier_curve), which are a particularly common form of vector graphics. These curves can be rendered, or _rasterized_, at different sizes and resolutions. Using other advanced features (_variable fonts_), the typeface can also change in _weight_ (thickness) or other parameters, all of which would have previously required different fonts. This means that a single _font file_ can now describe an entire typeface or even a _family_ of related typefaces, and the entire process is _well_ removed from dealing with cases full of physical type sorts.
 
