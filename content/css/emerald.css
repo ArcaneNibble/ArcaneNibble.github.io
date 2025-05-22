@@ -8,12 +8,46 @@
         0 #c7c7c7,
         2 #272727;
 }
+@font-palette-values --Emerald-light {
+    font-family: 'Emerald';
+    override-colors:
+        0 #383838,
+        2 #d8d8d8;
+}
 @media (prefers-color-scheme: light) {
     @font-palette-values --Emerald {
         font-family: 'Emerald';
         override-colors:
             0 #383838,
             2 #d8d8d8;
+    }
+}
+@font-palette-values --Emerald-ugly {
+    font-family: 'Emerald';
+    override-colors:
+        0 #e7e7e7,
+        2 #00d000;
+}
+@media (prefers-color-scheme: light) {
+    @font-palette-values --Emerald-ugly {
+        font-family: 'Emerald';
+        override-colors:
+            0 #383838,
+            2 #00ff00;
+    }
+}
+@font-palette-values --Emerald-noshadow {
+    font-family: 'Emerald';
+    override-colors:
+        0 #e7e7e7,
+        2 #00000000;
+}
+@media (prefers-color-scheme: light) {
+    @font-palette-values --Emerald-noshadow {
+        font-family: 'Emerald';
+        override-colors:
+            0 #383838,
+            2 #00000000;
     }
 }
 
