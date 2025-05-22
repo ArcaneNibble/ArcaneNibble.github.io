@@ -23,7 +23,7 @@
         --link-visited: #380860;
     }
 }
-@media not (prefers-color-scheme: light) {
+@media (prefers-color-scheme: dark) {
     .svgicon {
         filter: invert(100%);
     }
@@ -104,72 +104,79 @@ pre code {
     border: 1px solid #888;
     line-height: 1.1em;
     max-width: fit-content;
-    pre {
-        margin-right: 10em;
-    }
     overflow-x: auto;
+}
+.highlight pre {
+    margin-right: 10em;
 }
 
 /* actual blog posts */
-main {
-    header {
-        margin: 1.5rem 0;
+main header {
+    margin: 1.5rem 0;
+}
+main header h1 {
+    font-size: 2.3rem;
+}
+main header a,
+main header a:visited {
+    text-decoration: none;
+    color: var(--txt-color);
+}
+main header a:hover {
+    text-decoration: underline 1px;
+}
+main header .article_date {
+    font-style: italic;
+    margin: 8px;
+}
 
-        h1 {
-            font-size: 2.3rem;
-        }
-        a, a:visited {
-            text-decoration: none;
-            color: var(--txt-color);
-        }
-        a:hover {
-            text-decoration: underline 1px;
-        }
-        .article_date {
-            font-style: italic;
-            margin: 8px;
-        }
-    }
-
-    .md_content {
-        line-height: 1.3em;
-        p, ol, ul {
-            margin-bottom: 1em;
-        }
-        ol, ul {
-            ol, ul {
-                margin-bottom: 0;
-            }
-        }
-        p:has(+ol), p:has(+ul) {
-            margin-bottom: 0.4em;
-        }
-
-        h1, h2, h3, h4, h5, h6 {
-            font-weight: 500;
-            margin-bottom: 1rem;
-        }
-        h1 {
-            font-size: 2rem;
-            line-height: 1.3em;
-        }
-        h2 {
-            font-size: 1.5rem;
-            line-height: 1.3em;
-        }
-        h3 {
-            font-size: 1.25rem;
-            line-height: 1.3em;
-        }
-        h4 {
-            font-size: 1.125rem;
-            line-height: 1.3em;
-        }
-        h5, h6 {
-            font-size: 1rem;
-            line-height: 1.3em;
-        }
-    }
+main .md_content {
+    line-height: 1.3em;
+}
+main .md_content p,
+main .md_content ol,
+main .md_content ul {
+    margin-bottom: 1em;
+}
+main .md_content ol ol,
+main .md_content ol ul,
+main .md_content ul ol,
+main .md_content ul ul {
+    margin-bottom: 0;
+}
+main .md_content p:has(+ol),
+main .md_content p:has(+ul) {
+    margin-bottom: 0.4em;
+}
+main .md_content h1,
+main .md_content h2,
+main .md_content h3,
+main .md_content h4,
+main .md_content h5,
+main .md_content h6 {
+    font-weight: 500;
+    margin-bottom: 1rem;
+}
+main .md_content h1 {
+    font-size: 2rem;
+    line-height: 1.3em;
+}
+main .md_content h2 {
+    font-size: 1.5rem;
+    line-height: 1.3em;
+}
+main .md_content h3 {
+    font-size: 1.25rem;
+    line-height: 1.3em;
+}
+main .md_content h4 {
+    font-size: 1.125rem;
+    line-height: 1.3em;
+}
+main .md_content h5,
+main .md_content h6 {
+    font-size: 1rem;
+    line-height: 1.3em;
 }
 
 /* nav bar */
@@ -181,55 +188,49 @@ main {
     justify-content: space-evenly;
     padding: 0;
     list-style: none;
-
-    li {
-        flex: 1;
-        text-align: center;
-        font-size: 16px;
-        font-family: "IBM VGA 9x16";
-
-        a {
-            text-decoration: none;
-            color: var(--txt-color);
-        }
-        a::before {
-            content: "[ ";
-        }
-        a::after {
-            content: " ]";
-        }
-    }
-
-    li.active a {
-        background-color: var(--txt-color);
-        color: var(--bg-color);
-    }
+}
+.tophdr > nav > ul li {
+    flex: 1;
+    text-align: center;
+    font-size: 16px;
+    font-family: "IBM VGA 9x16";
+}
+.tophdr > nav > ul li a {
+    text-decoration: none;
+    color: var(--txt-color);
+}
+.tophdr > nav > ul li a::before {
+    content: "[ ";
+}
+.tophdr > nav > ul li a::after {
+    content: " ]";
+}
+.tophdr > nav > ul li.active a {
+    background-color: var(--txt-color);
+    color: var(--bg-color);
 }
 
 /* overall layout */
 .maindiv {
     display: flex;
-
-    main {
-        flex: 1;
-        max-width: calc(min(100vw, var(--design-max-width)) - var(--design-sidebar-width));
-        padding: 4px;
-    }
-    .sidebar {
-        flex: 0 0 var(--design-sidebar-width);
-    }
+}
+.maindiv main {
+    flex: 1;
+    max-width: calc(min(100vw, var(--design-max-width)) - var(--design-sidebar-width));
+    padding: 4px;
+}
+.maindiv .sidebar {
+    flex: 0 0 var(--design-sidebar-width);
 }
 @media (max-width: 768px) {
     .maindiv {
         flex-direction: column;
-
-        main {
-            max-width: unset;
-        }
-
-        .sidebar {
-            flex: 0 0 auto;
-        }
+    }
+    .maindiv main {
+        max-width: unset;
+    }
+    .maindiv .sidebar {
+        flex: 0 0 auto;
     }
 }
 
@@ -242,39 +243,36 @@ main {
 .archives {
     display: grid;
     grid-template-columns: auto auto 16px;
-
-    a {
-        grid-column: 1;
-    }
-    span {
-        grid-column: 2;
-    }
-    div {
-        grid-column: 1;
-        font-size: smaller;
-        font-style: italic;
-        margin-left: 20px;
-        margin-bottom: 0.8em;
-    }
+}
+.archives a {
+    grid-column: 1;
+}
+.archives span {
+    grid-column: 2;
+}
+.archives div {
+    grid-column: 1;
+    font-size: smaller;
+    font-style: italic;
+    margin-left: 20px;
+    margin-bottom: 0.8em;
 }
 
 /* sidebar links */
 .sidebar {
     padding: 4px;
     margin-top: 48px;
-
-    header {
-        font-size: 2rem;
-        margin-bottom: 0.5em;
-    }
-
-    ul {
-        list-style: none;
-        padding: 0;
-        li {
-            margin-bottom: 0.2em;
-        }
-    }
+}
+.sidebar header {
+    font-size: 2rem;
+    margin-bottom: 0.5em;
+}
+.sidebar ul {
+    list-style: none;
+    padding: 0;
+}
+.sidebar ul li {
+    margin-bottom: 0.2em;
 }
 @media (max-width: 768px) {
     .sidebar {
@@ -287,13 +285,11 @@ main {
 footer {
     font-size: 9px;
     margin-bottom: 2px;
-
-    .buttons {
-        line-height: 0;
-
-        img {
-            width: unset;
-            object-fit: none;
-        }
-    }
+}
+footer .buttons {
+    line-height: 0;
+}
+footer .buttons img {
+    width: unset;
+    object-fit: none;
 }
