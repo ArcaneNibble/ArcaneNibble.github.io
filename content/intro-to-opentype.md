@@ -149,6 +149,12 @@ This allows us to specify variations like this: <span class="emerald">♂♂︁�
 
 # Language-dependent substitutions
 
-In `GSUB` tables, it is possible to define language-specific character substitutions like the following: <span lang="ja" class="emerald">I wish I were Japanese!</span>
+In `GSUB` tables, it is possible to define language-specific character substitutions like the following: <span lang="ja" class="emerald">I wish this text was Japanese!</span>
 
-This is tagged using a `lang="ja"` attribute in HTML and uses the `locl` feature and `JAN` Language System (LangSys) in OpenType, and I've mapped the standard 26 Latin letters, the digits 0-9, and the ?! punctuation to their fullwidth glyph variants. It is possible to map _all_ symbols to their Japanese variants (not requiring variation selectors), but doing so nicely requires further font programming that I haven't done yet.
+This is tagged using a `lang="ja"` attribute in HTML and uses the `locl` feature and `JAN` Language System (LangSys) in OpenType, and I've mapped the standard 26 Latin letters, the digits 0-9, and the ?! punctuation to their fullwidth glyph variants. I've also mapped many of the special glyphs and ligatures to their Japanese variants, but I _haven't_ mapped e.g. the period . to the ideographic full stop 。 as these characters are semantically different.
+
+This can be combined with variation selectors, as long as the font is correctly programmed:
+
+Default glyphs, followed by forced-Latin, followed by forced-JP, language tag `ja`: <span lang="ja" class="emerald">♂♀L‍vP‍PI‍D🡅 ♂︀♀︀L‍v︀P‍P︀I‍D︀🡅︀ ♂︁♀︁L‍v︁P‍P︁I‍D︁🡅︁</span>
+
+Default glyphs, followed by forced-Latin, followed by forced-JP, language tag `en`: <span lang="en" class="emerald">♂♀L‍vP‍PI‍D🡅 ♂︀♀︀L‍v︀P‍P︀I‍D︀🡅︀ ♂︁♀︁L‍v︁P‍P︁I‍D︁🡅︁</span>
