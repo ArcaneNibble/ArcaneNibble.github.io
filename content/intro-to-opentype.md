@@ -18,6 +18,8 @@ Not sure what just happened there…
 
 In all seriousness, this page uses a font which has been derived from that used in the later <span class="emerald">POKéMON</span> Generation III games. I've converted it to OpenType and made use of several "advanced typography" features along the way. In this article I hope to show off OpenType, HTML, and CSS functionality which might not be widely known and how they can be applied even for Latin script.
 
+If you just want the `.ttf` file, get it [here]({static}/css/Emerald.ttf). If you want the source code, it is [here](https://github.com/ArcaneNibble/pokefont).
+
 # Can you even do this?!
 
 I will preface this section by stating that "I am not a lawyer", but copyright and intellectual property protections for typefaces and fonts are much more inconsistent compared to other creative works.
@@ -167,7 +169,7 @@ As for the problem of not containing _enough_ characters, this font actually doe
 
 # Ligatures
 
-Creative interpretation of the Unicode specification can handle many symbols, but what can you do if you _really_ wanted to become a <span class="emerald nobr">P‍kM‍n TRAINER</span>? Or if your pet _really_ loves the taste of <span class="emerald">P‍oK‍eB‍LO‍CK‍.s</span>? Or if you're merely celebrating reaching <span class="emerald">L‍v100</span>?
+Creative interpretation of the Unicode specification can handle many symbols, but what can you do if you _really_ wanted to become a <span class="emerald nobr">P‍kM‍n TRAINER</span>? Or if your pet _really_ loves the taste of <span class="emerald nobr">P‍oK‍eB‍LO‍CK‍.s</span>? Or if you're merely celebrating reaching <span class="emerald">L‍v100</span>?
 
 I've chosen to encode these by using [zero-width joiner](https://en.wikipedia.org/wiki/Zero-width_joiner) sequences, which are probably best known in English for being used to combine sequences of emoji such as 👨‍👩‍👦 out of `U+1F468` <span style="font-variant: all-small-caps">MAN</span> + ZWJ + `U+1F469` <span style="font-variant: all-small-caps">WOMAN</span> + ZWJ + `U+1F466` <span style="font-variant: all-small-caps">BOY</span>. In this case, this means that <span class="emerald">Pk</span> becomes <span class="emerald">P‍k</span> when a ZWJ character is inserted in the middle.
 
