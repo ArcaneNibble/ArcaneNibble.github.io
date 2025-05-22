@@ -48,13 +48,13 @@ The visual shape of a letter is called a _glyph_. A complete set of these indivi
 
 ## Bitmap fonts
 
-For now, let's skip ahead and over all of the early history of digital typography and go straight to the era of video games and home computers. These systems tended to use bitmap fonts at a fixed resolution due to hardware limitations.
+For now, let's skip ahead and over all of the early history of digital typography and go straight to the era of video games and home computers. These systems tended to use bitmap fonts at a fixed low resolution due to hardware limitations.
 
 <img src="{static}/images/bmpfonts.png" alt="sample of bitmap fonts" style="max-width: 300px" class="nopad">
 
 <small>Commodore 64, IBM VGA, and Pokémon Generation II fonts</small>
 
-Many of these systems had hardwired logic for rendering "characters" or "tiles". In some cases, the shape of these characters was fixed into a <abbr title="Read Only Memory">ROM</abbr>, and in other cases they were reconfigurable. However, these systems would in all cases render text as fundamentally composed of fixed-sized rectangles. It wasn't easy (or sometimes even possible) to render text at different sizes. Essentially, these systems only supported one single font.
+Many of these systems had hardwired logic for rendering "characters" or "tiles". In some cases, the shape of these characters was fixed into a <abbr title="Read Only Memory">ROM</abbr>, and in other cases they were reconfigurable. However, these systems would in all cases render text as fundamentally composed of fixed-sized rectangles. It wasn't easy (or sometimes even possible) to render text at different sizes. Essentially, many of these systems only supported one single font.
 
 The typefaces and fonts on some of these systems might've been designed by a "real designer" trying to optimize for readability, but it is just as possible that fonts on these systems were designed by a harried game programmer or electrical engineer.
 
@@ -153,16 +153,20 @@ Finally, how do we handle the situation where the game's Latin and Japanese font
 
 These characters have a number of uses including specifying minor variations in <abbr title="Chinese, Japanese, Korean, Vietnamese">CJKV</abbr> characters which do not have separate codepoints (i.e. they are semantically "the same" character, but different forms may be preferred in different countries). However, once again OpenType allows us to define our own nonstandard ones, and they will be stored in a special part of the `cmap` table.
 
-This allows us to specify variations like this: <span class="emerald">♂︀♂︁♀︀♀︁</span>. The second character in each pair comes from the Japanese font, and they are accessed by adding `U+FE01` <span style="font-variant: all-small-caps">VARIATION SELECTOR-2</span> after the character (`U+FE00` <span style="font-variant: all-small-caps">VARIATION SELECTOR-1</span> selects the default Latin glyph, which does nothing in this context).
+This allows us to specify variations like this: <span class="emerald">♂︀♂︁♀︀♀︁</span>. The second character in each pair comes from the Japanese font, and they are accessed by adding `U+FE01` <span style="font-variant: all-small-caps">VARIATION SELECTOR-2</span> after the character (`U+FE00` <span style="font-variant: all-small-caps">VARIATION SELECTOR-1</span> selects Latin glyphs, which does nothing in this context as they are the default).
 
 # Language-dependent substitutions
 
 In `GSUB` tables, it is possible to define language-specific character substitutions like the following: <span lang="ja" class="emerald">I wish this text was in <span class="nobr">にほんご</span>!</span>
 
-This is tagged using a `lang="ja"` attribute in HTML and uses the `locl` feature and `JAN` Language System (LangSys) in OpenType. I've mapped the standard 26 Latin letters, the digits 0-9, and the ?! punctuation to their fullwidth glyph variants. I've also mapped many of the special glyphs and ligatures to their Japanese variants, but I _haven't_ mapped e.g. the period . to the ideographic full stop 。 as these characters are semantically different.
+This is tagged using a `lang="ja"` attribute in HTML and uses the `locl` feature and `JAN` (Japanese) Language System (LangSys) in OpenType. I've mapped the standard 26 Latin letters, the digits 0-9, and the ?! punctuation to their fullwidth glyph variants, which is what would happen in a Japanese edition of the games. I've also mapped many of the special glyphs and ligatures to their Japanese variants, but I _haven't_ mapped e.g. the period . to the ideographic full stop 。 as these characters are semantically different.
+
+If this is undesired, `font-feature-settings: 'locl' 0` in CSS can be used to disable it: <span lang="ja" class="emerald" style="font-feature-settings: 'locl' 0">I wish this text was in <span class="nobr">にほんご</span>!</span>
 
 This can be combined with variation selectors, as long as the font is correctly programmed:
 
 Default glyphs, followed by forced-Latin, followed by forced-JP, language tag `ja`: <span lang="ja" class="emerald">♂♀L‍vP‍PI‍D🡅 ♂︀♀︀L‍v︀P‍P︀I‍D︀🡅︀ ♂︁♀︁L‍v︁P‍P︁I‍D︁🡅︁</span>
 
 Default glyphs, followed by forced-Latin, followed by forced-JP, language tag `en`: <span lang="en" class="emerald">♂♀L‍vP‍PI‍D🡅 ♂︀♀︀L‍v︀P‍P︀I‍D︀🡅︀ ♂︁♀︁L‍v︁P‍P︁I‍D︁🡅︁</span>
+
+Some complexity and compatibility issues can occur here because different systems may process these OpenType features in different orders. For the most part, for "standard" scripts, features are processed in the order in which "lookups" are defined in the `GSUB` table. However, complex scripts will always process certain features before certain others. Consult the [Microsoft script development specs](https://learn.microsoft.com/en-us/typography/script-development/standard) for more details.
