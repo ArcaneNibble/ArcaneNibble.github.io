@@ -16,9 +16,7 @@ custom_stylesheet: css/emerald.css
 
 Not sure what just happened there…
 
-In all seriousness, this page uses a font which has been derived from that used in the later <span class="emerald">POKéMON</span> Generation III games.
-
-TODO write more here
+In all seriousness, this page uses a font which has been derived from that used in the later <span class="emerald">POKéMON</span> Generation III games. I've converted it to OpenType and made use of several "advanced typography" features along the way. In this article I hope to show off OpenType functionality which might not be widely known and how they can be applied even for Latin script.
 
 # Can you even do this?!
 
@@ -66,9 +64,37 @@ Separate from these systems which were just trying to "get something done", peop
 
 OpenType originally consisted of Microsoft extensions to Apple's TrueType format (the origin of the `.ttf` extension). TrueType itself was a competitor to Adobe's PostScript fonts. As a compromise format, OpenType can use _either_ TrueType-style glyph outlines _or_ PostScript-style glyph outlines. OpenType has continued to evolve as users demanded more and more of digital typography and desktop publishing.
 
+(If you are familiar with <abbr title="Web Open Font Format">WOFF</abbr>, it is merely a compressed variant of OpenType.)
+
 In a typical font file, OpenType describes a typeface using [Bézier curves](https://en.wikipedia.org/wiki/B%C3%A9zier_curve), which are a particularly common form of vector graphics. These curves can be rendered, or _rasterized_, at different sizes and resolutions. Using other advanced features (_variable fonts_), the typeface can also change in _weight_ (thickness) or other parameters, all of which would have previously required different fonts. This means that a single _font file_ can now describe an entire typeface or even a _family_ of related typefaces, and the entire process is _well_ removed from dealing with cases full of physical type sorts.
 
-Controlling all of this is all sorts of metadata, tables, and, in many cases, code. In the rest of this article, we will be exploring some of what can be done with this.
+Controlling all of this is all sorts of metadata, tables, and, in many cases, code. In the rest of this article, we will be exploring how this works.
+
+# Looking inside fonts
+
+If you are comfortable with Python and the command line, the [fonttools](https://github.com/fonttools/fonttools) package can be used to look inside font files. The `ttx` utility converts between binary files and an XML representation of the information. Running `ttx -f Emerald.ttf` produces a file `Emerald.ttx` that can be opened in a text editor:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<ttFont sfntVersion="\x00\x01\x00\x00" ttLibVersion="4.58">
+
+  <GlyphOrder>
+    <!-- The 'id' attribute is only for humans; it is ignored when parsed. -->
+    <GlyphID id="0" name=".notdef"/>
+    <GlyphID id="1" name="zwj"/>
+    <GlyphID id="2" name="vs1"/>
+    <GlyphID id="3" name="vs2"/>
+    <GlyphID id="4" name="en"/>
+    <GlyphID id="5" name="em"/>
+    <GlyphID id="6" name="sp6"/>
+    <GlyphID id="7" name="sp5"/>
+    <GlyphID id="8" name="sp4"/>
+    <GlyphID id="9" name="sp2"/>
+    <GlyphID id="10" name="sp0"/>
+    …
+```
+
+The font I have created here also uses `fonttools`, as it is generated programmatically rather than being edited in GUI font editor software.
 
 # Tracing pixel outlines
 
