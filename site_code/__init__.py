@@ -40,9 +40,9 @@ def ascii_to_entity(i):
         ('SP', 'Space'),
     ]
     if i <= 0x20:
-        return f'<td class="caps"><span title="{CODES[i][1]}">{CODES[i][0]}</span></td>'
+        return f'<td class="smallcaps"><span title="{CODES[i][1]}">{CODES[i][0]}</span></td>'
     elif i == 0x7f:
-        return '<td class="caps"><span title="Delete">DEL</span></td>'
+        return '<td class="smallcaps"><span title="Delete">DEL</span></td>'
     else:
         return '<td>&#{:d};</td>'.format(i)
 

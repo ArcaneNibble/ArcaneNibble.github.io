@@ -85,6 +85,12 @@ img {
 p:has(.nopad) {
     margin-bottom: 0em !important;
 }
+.smallcaps {
+    font-variant-caps: all-small-caps;
+}
+.tabnum {
+    font-variant-numeric: tabular-nums;
+}
 
 /* embedded code (monospace) */
 code {
@@ -342,12 +348,6 @@ table.ascii tbody tr {
 table.ascii tbody tr td {
     padding-left: 2px;
     padding-right: 2px;
-}
-table.ascii tbody tr td.caps {
-    font-variant-caps: all-small-caps;
-}
-table.ascii tbody tr td.dec {
-    font-variant-numeric: tabular-nums;
 }
 table.ascii tbody tr td.err {
     background-color: #ff000040;

@@ -15,7 +15,7 @@
             {% for i in range(128) %}
                 <tr>
                     <td><pre>0x{{ '{:02x}'.format(i) }}</pre></td>
-                    <td class="dec">{{ '{:d}'.format(i) }}</td>
+                    <td class="tabnum">{{ '{:d}'.format(i) }}</td>
                     {{ ascii(i) }}
                 </tr>
             {% endfor %}
@@ -36,7 +36,7 @@
             {% for i in range(128, 256) %}
                 <tr>
                     <td><pre>0x{{ '{:02x}'.format(i) }}</pre></td>
-                    <td class="dec">{{ '{:d}'.format(i) }}</td>
+                    <td class="tabnum">{{ '{:d}'.format(i) }}</td>
                     {{ cp1252(i) }}
                 </tr>
             {% endfor %}
@@ -57,7 +57,7 @@
             {% for i in range(128, 256) %}
                 <tr>
                     <td><pre>0x{{ '{:02x}'.format(i) }}</pre></td>
-                    <td class="dec">{{ '{:d}'.format(i) }}</td>
+                    <td class="tabnum">{{ '{:d}'.format(i) }}</td>
                     {{ cp437(i) }}
                 </tr>
             {% endfor %}
