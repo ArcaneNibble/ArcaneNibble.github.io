@@ -217,6 +217,11 @@ main .md_content h6 {
     background-color: var(--txt-color);
     color: var(--bg-color);
 }
+@media (max-width: 420px) {
+    .tophdr > nav > ul {
+        flex-direction: column;
+    }
+}
 
 /* overall layout */
 .maindiv {
