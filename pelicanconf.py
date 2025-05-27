@@ -44,3 +44,12 @@ EXTRA_PATH_METADATA = {
 }
 
 THEME = "arcanenibble-theme"
+
+import os.path, sys
+sys.path.append(os.path.dirname(os.path.realpath(__file__)))
+from site_code import *
+JINJA_GLOBALS = {
+    'ascii': ascii_to_entity,
+    'cp1252': cp1252_to_entity,
+    'cp437': cp437_to_entity,
+}

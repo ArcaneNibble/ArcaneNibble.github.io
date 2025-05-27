@@ -48,6 +48,7 @@
                 <ul>
                     <li{% if is_homepage %} class="active"{% endif %}><a href="{{ SITEURL }}/">Home</a></li>
                     <li{% if is_blogpage %} class="active"{% endif %}><a href="{{ SITEURL }}/{{ ARCHIVES_URL | default('archives.html') }}">Blog</a></li>
+                    <li{% if page and page.is_toolpage %} class="active"{% endif %}><a href="{{ SITEURL }}/toolbox.html">Toolbox</a></li>
                     {% for p in pages | sort(attribute=PAGES_SORT_ATTRIBUTE) %}
                         {% if p.url and p.is_nav_page %}
                         <li{% if p == page %} class="active"{% endif %}><a href="{{ SITEURL }}/{{ p.url }}">
