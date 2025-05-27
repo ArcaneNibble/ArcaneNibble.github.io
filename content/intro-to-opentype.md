@@ -1,7 +1,6 @@
 Title: A quick introduction to OpenType
-Date: 2025-05-01
+Date: 2025-05-27
 Summary: Fonts are surprisingly hackable!
-Status: draft
 custom_stylesheet: css/emerald.css
 
 <span class="emerald nopad">Hi! Sorry to keep you waiting!</span>
@@ -20,7 +19,7 @@ In all seriousness, this page uses a font which has been derived from that used 
 
 If you just want the `.ttf` file, get it [here]({static}/css/Emerald.ttf). If you want the source code, it is [here](https://github.com/ArcaneNibble/pokefont).
 
-# Can you even do this?!
+# Are you even allowed to do this?!
 
 I will preface this section by stating that "I am not a lawyer", but copyright and intellectual property protections for typefaces and fonts are much more inconsistent compared to other creative works.
 
@@ -96,11 +95,11 @@ If you are comfortable with Python and the command line, the [fonttools](https:/
     …
 ```
 
-The process of creating this font from bitmap images also relies on `fonttools`, as the entire process is done programmatically rather than being edited in GUI font editor software.
+The process that I used to create this font from bitmap images also relies on `fonttools`, as the entire process is done programmatically rather than being edited in GUI font editor software.
 
 # Tracing pixel outlines
 
-To bring this font into the world of OpenType, we need to convert it from a bitmap font. Because enough time has passed since the introduction of vector typefaces (on personal computing devices and outside of the "publishing" world), the pixellated appearance of bitmap fonts is no longer a limitation but is now an _intentional_ design choice to evoke a retro, nostalgic appearance. As such, we want to perform the conversion so that the typeface remains blocky and pixellated even as it scales to larger sizes:
+To bring this font into the world of OpenType, we need to convert it from a bitmap font. Because enough time has passed since the mass-market introduction of vector typefaces, the pixellated appearance of bitmap fonts is no longer a limitation but is now an _intentional_ design choice to evoke a retro, nostalgic appearance. As such, we want to perform the conversion so that the typeface remains blocky and pixellated even as it scales to larger sizes:
 
 <span class="emerald" style="font-size: 160px; line-height: 1em;">ABCD</span>
 
@@ -147,7 +146,7 @@ For debugging, this output can be converted to an SVG and opened in tools such a
 
 # Colors
 
-If you look carefully, you might notice that this typeface has a text shadow. This isn't created by CSS but in fact is baked into the font file itself. This is done using a technology which is used for color emoji, but it is in no way restricted to just those characters.
+If you look carefully, you might notice that this typeface has a text shadow. This isn't created by CSS but in fact is baked into the font file itself. This is done using a technology which is used for color emoji, but it is in no way restricted to them.
 
 Some of the earlier color font technologies (`sbix`, `CBDT`) worked by embedding color bitmaps inside an OpenType file. Unlike with early home computer bitmap fonts, these tables store _large, high-resolution_ images which would be scaled _down_ (which tends to work a lot better than scaling up). This technology was pretty clearly designed for emoji and didn't generalize well to other use cases.
 
