@@ -270,6 +270,14 @@ main .md_content h6 {
     margin-left: 20px;
     margin-bottom: 0.8em;
 }
+@media (max-width: 600px) {
+    .archives {
+        grid-template-columns: auto;
+    }
+    .archives span {
+        grid-column: 1;
+    }
+}
 
 /* sidebar links */
 .sidebar {
