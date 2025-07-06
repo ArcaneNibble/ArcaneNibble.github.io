@@ -25,7 +25,6 @@ class FairyFlossStyle(Style):
     }
 
 def hooked(name):
-    print("HOOKED!")
     return FairyFlossStyle
 pygments.styles.get_style_by_name = hooked
 
