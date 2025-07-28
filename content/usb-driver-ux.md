@@ -1,29 +1,32 @@
 Title: Making USB widgets easy to install
-Date: 2025-07-27
+Date: 2025-07-28
 Summary: Extra descriptors for Windows and WebUSB
-Status: draft
 
 # TL;DR
 
 Set `bcdDevice` to `0x0210`, add [this](https://learn.microsoft.com/en-us/windows-hardware/drivers/usbcon/microsoft-os-2-0-descriptors-specification) and optionally [this](https://developer.chrome.com/docs/capabilities/build-for-webusb).
 
+Microsoft complexified their operating system and then proceeded to make it everybody else's problem.
+
+Google and Chromium-based browsers upended "software distribution", which naturally made the consequences everybody else's problem as well.
+
+If you want to make physical objects which connect to anything computer-shaped (including mobile phones), you now have extra work to do for the best out-of-the-box user experience. None of these extra functions are in Chapter 9 of the USB 2.0 specification, and I wasn't sure how anybody was ever supposed to find out about them without being told, and thus this article was born.
+
 # What? (Historical context)
 
 When hardware is added to a computer, the computer needs to know how to talk to this hardware. In order to be able to, the computer relies on some software _drivers_.
 
-Nowadays, many users no longer have to think about this thanks to the availability of _standards_ which allow for generic drivers to interface with _any_ hardware that operates according to the rules of the standard. Many of these generic drivers now come bundled with the system and don't have to be manually installed.
+Nowadays, many users no longer have to think about this thanks to the availability of _standards_ which allow for generic drivers to interface with _any_ hardware that operates according to the rules of the standard. Many of these generic drivers now come bundled with operating systems and don't have to be manually installed.
 
 The USB standard defines both a basic set of rules that all USB devices need to follow as well as a list of standard "[device classes](https://www.usb.org/defined-class-codes)" for commonly-encountered peripherals (such as mice, keyboards, flash drives, cameras, or more specialized things such as smart cards or electronics test and measurement lab equipment).
 
-As stated, nowadays almost any standard mouse or keyboard or flash drive from any manufacturer will work on any computer or even many mobile devices because they all follow the same specification. But what happens if you want to do something other than what is standard and generic? Custom software and occasionally custom drivers are still required.
-
-For example, you often need custom software and sometimes custom drivers to make "Gamer Pro X RGB+ Ultra" keyboards and mice work properly or to configure their advanced settings.
+As stated, nowadays almost any standard mouse or keyboard or flash drive from any manufacturer will work on any computer or even many mobile devices thanks to these specification. But what happens if you want to do something other than what is standard and generic? Custom software and occasionally custom drivers are still required. For example, you often need custom software and sometimes custom drivers to make "Gamer Pro X RGB+ Ultra" keyboards and mice work properly or to configure their advanced settings.
 
 ## Not-Windows
 
-On macOS and Linux, the operating system provides a way for programs (in user-space) to talk to USB devices "without a driver" (i.e. by only relying on the basic behaviors that all USB devices must implement). This user-space program essentially takes the place of a driver. For devices which do not need to provide services to the entire system, this interface is sufficient.
+On macOS and Linux, the operating system provides a way for programs (in user-space) to talk to USB devices "without a driver" (i.e. by only relying on the basic behaviors that all USB devices must implement). This user-space program essentially takes on the role of a driver. For devices which do not need to provide services to the entire system, this interface can often be sufficient.
 
-For example, a device which only needs to receive a firmware update or configuration settings can use just these basic low-level USB operations. So can a specialized piece of industrial equipment which only talks to its special control software. However, something such as a network card would not fit this model nearly as well because it needs to be accessible and shared by every program on the computer _as a network card_.
+For example, a device which only needs to receive a firmware update or configuration settings can use just these basic low-level USB operations. So can a specialized piece of industrial equipment which only talks to its special control software. However, something such as a network card would not fit this model very well because it needs to be accessible and _shared_ by every program on the computer _as a network card_. (Sharing resources between programs is generally considered one of the purposes of an operating system!)
 
 ## Windows
 
@@ -49,7 +52,7 @@ Because this specification was being designed in the 1990s when many wacky ideas
 
 Although the devices listed are primarily thought of as _input_ devices, many of them have limited _output_ capabilities as well. For example, traditional PC keyboards have LEDs for Caps Lock, Num Lock, and Scroll Lock, all of which are controllable in software. Joysticks and gamepads also support force feedback (another overcomplicated specification which is almost impossible to understand).
 
-Because of the extensibility of USB HID, it is possible to add vendor-specific commands to HID devices, and none of the major platforms require writing a custom driver to interface with them. This is a reasonable way to implement a computer peripheral that needs some extra blinkenlights.
+Because of the extensibility of USB HID, it is possible to add vendor-specific commands to HID devices, and none of the major platforms require writing a custom driver to use them. This is a reasonable way to implement a computer peripheral that needs some extra blinkenlights.
 
 However, because of how generic USB HID is, it's possible to push it to the extreme and define a device where the _entirety_ of its input and output "reports" consists solely of "vendor defined", up to the limit of the USB packet size. This entirely defeats the spirit of the specification but results in a simple bidirectional channel with a USB device.
 
@@ -63,11 +66,11 @@ These drivers all have slightly different capabilities and different bugs. They 
 
 # WinUSB
 
-Because this was a sufficiently visible issue (industrial customers and <abbr title="independent hardware vendors">IHVs</abbr>, including lazy IHVs, are an important part of the ecosystem which Microsoft depends on), Microsoft also developed their own generic USB driver called WinUSB. It has existed since Vista but has been backported to Windows XP.
+Because this was a sufficiently visible issue (industrial customers and <abbr title="independent hardware vendors">IHVs</abbr>, including lazy IHVs, are an important part of the ecosystem which Microsoft depends on), Microsoft also developed their own generic USB driver called WinUSB. It has existed since Windows Vista but has been backported to Windows XP.
 
-Because this driver is developed by Microsoft, Microsoft is responsible for maintaining it and distributing it (either via Windows Update or by being included in the operating system starting with Windows 8).
+Because this driver is developed by Microsoft, Microsoft is responsible for maintaining it and distributing it (either via Windows Update or by being included in the operating system starting with Windows 8). (This of course does mean that you are dependent on Microsoft to fix any bugs.)
 
-A problem with both the open-source generic USB drivers and this WinUSB generic driver is that there was no way to specify using only standard USB descriptors that generic drivers should be loaded. Normally, driver loading is controlled by combinations of the USB vendor ID, product ID, and device class. However, generic drivers can potentially be associated with _any_ vendor or product.
+A problem with both the open-source generic USB drivers and this WinUSB generic driver is that there was no way to specify, using only standard USB descriptors, that generic drivers should be loaded. Normally, driver loading is controlled by combinations of the USB vendor ID, product ID, and device class. However, generic drivers can potentially be associated with _any_ vendor or product.
 
 The way Microsoft decided to solve this problem was by either requiring a special metadata (`.inf`) file to be installed by the end-user, or by requiring the device to implement special "Microsoft OS Descriptors" in the device's firmware.
 
@@ -79,25 +82,25 @@ These descriptors can be used to tell Windows explicitly to load a certain drive
 
 The most important thing is that, with these descriptors, _driver installation becomes entirely automatic and seamless_, even for devices which implement completely custom USB functionality.
 
-This is not a code-focused article, but [here](https://github.com/pybricks/pybricks-micropython/blob/1808d73d581d85477df702787d6543ff6bf6c131/lib/pbio/drv/usb/usb_common_desc.c#L36-L60) is an example of a Microsoft OS 2.0 Descriptor which requests that Windows load the WinUSB driver.
+This is not a code-focused article, but [here](https://github.com/pybricks/pybricks-micropython/blob/1808d73d581d85477df702787d6543ff6bf6c131/lib/pbio/drv/usb/usb_common_desc.c#L36-L60) is an example of a Microsoft OS 2.0 Descriptor which requests that Windows load the WinUSB driver. It is also possible to request loading other drivers such as the Xbox gamepad driver or the USB <abbr title="Communications Device Class">CDC</abbr>-<abbr title="Network Control Model">NCM</abbr> Ethernet driver. Unfortunately, I do not know where to find a list of all drivers that can be loaded in this manner. The list on Microsoft's website which claims to be up-to-date clearly is not and includes neither WinUSB nor the CDC-NCM driver.
 
-Microsoft OS 1.0 Descriptors should also work and should enable even greater compatibility, but there seems to be much less interest in continuing to support it. <small>(Personal speculation: this may be due to the aggressive push to roll out Windows 10 as well as some of these WinUSB capabilities seemingly being [pushed for or at least associated with Windows Phone efforts](https://libusb-devel.narkive.com/kNFnzBoL/microsoft-has-apparently-enabled-winusb-wcid-for-windows-7-through-windows-update))</small>
+Microsoft OS 1.0 Descriptors should also work and should enable even greater compatibility, but there seems to be much less interest in continuing to support them. I also don't know what happens if a device supports both. <small>(Personal speculation: A bunch of this may have been forgotten due to the aggressive push to roll out Windows 10 as well as some of these WinUSB capabilities seemingly being [pushed for as part of or at least in association with Windows Phone efforts](https://libusb-devel.narkive.com/kNFnzBoL/microsoft-has-apparently-enabled-winusb-wcid-for-windows-7-through-windows-update)).</small> For details and examples of Microsoft OS 1.0 descriptors, [this](https://github.com/pbatard/libwdi/wiki/wcid-devices) article may help.
 
 ## USB Binary Object Store
 
-The USB Binary Object Store (BOS) descriptor is a mechanism for a USB device to describe "extra" structured binary data for a host. This data is "extra" in the sense that it is not required to operate the core USB device framework. This is, once again like many aspects of USB, excessively generic.
+The USB Binary Object Store (BOS) descriptor is a mechanism for a USB device to describe ["extra" structured binary data](https://www.usb.org/bos-descriptor-types) for a host. This data is "extra" in the sense that it is not required to operate the core USB device framework. This is, once again like many aspects of USB, excessively generic.
 
-This descriptor originated with some combination of the Wireless USB specification (which has since been memory-holed) and the USB 3.0 specification. It was then backported so that it can also be used with USB 2.0 devices. To use them, devices which are aware of BOS descriptors must report a `bcdDevice` in the device descriptor of at least 2.0.1 or 2.1.0 depending on which "extra" features are indicated.
+This descriptor originated with some combination of the Wireless USB specification (which has since been memory-holed) and the USB 3.0 specification. It was then backported so that it can also be used with USB 2.0 devices. To use a BOS descriptor, devices must report a `bcdDevice` in the device descriptor of at least 2.0.1 or 2.1.0 depending on which "extra" features are indicated. (Microsoft OS 2.0 Descriptors require indicating USB version 2.1.0.)
 
 Examples of "extra" capabilities described by BOS descriptors include Wireless USB data rates and capabilities, support for USB 2.0 Link Power Management (the original reason for the backport), and information about USB 3 speeds and power management latencies.
 
-One of the categories of "extra" capabilities is a capability for defining platform-specific capabilities (identified by a GUID).
+One of the categories of "extra" capabilities is a capability (`0x05`) for defining arbitrary platform-specific capabilities (identified by a GUID). Yes, this is indeed yet another generic layer inside of a generic layer. The use of a GUID however allows anybody to define platform-specific capabilities without having to coordinate with each other or with the USB Implementors Forum.
 
-A specific GUID, `{D8DD60DF-4589-4CC7-9CD2-659D9E648A9F}`, is used to indicate support for Microsoft OS Descriptors 2.0. An example can be seen [here](https://github.com/pybricks/pybricks-micropython/blob/1808d73d581d85477df702787d6543ff6bf6c131/lib/pbio/drv/usb/usb_common_desc.c#L82-L94).
+A specific GUID, `{D8DD60DF-4589-4CC7-9CD2-659D9E648A9F}`, is inserted into the BOS descriptor to indicate support for Microsoft OS 2.0 Descriptors. An example can be seen [here](https://github.com/pybricks/pybricks-micropython/blob/1808d73d581d85477df702787d6543ff6bf6c131/lib/pbio/drv/usb/usb_common_desc.c#L82-L94).
 
 # WebUSB
 
-Due to ecosystem trends which were very much intentional but out of scope for this article, a lot of software nowadays is delivered through Chromium-based web browsers. As part of enabling web browsers to become a major software delivery channel, the [WebUSB](https://developer.mozilla.org/en-US/docs/Web/API/WebUSB_API) API was introduced to allow web pages to talk to USB devices using the generic USB device framework described throughout this article.
+Due to ecosystem trends which were very much intentional but out of scope for this article, a lot of software nowadays is delivered through Chromium-based web browsers. As part of enabling web browsers to become a major software delivery channel, the [WebUSB](https://developer.mozilla.org/en-US/docs/Web/API/WebUSB_API) API was introduced to allow web pages to talk to USB devices using generic USB device frameworks described throughout this article.
 
 A device which is _intended_ to be accessed from a website can embed a URL inside its firmware by adding a special [WebUSB descriptor](https://developer.chrome.com/docs/capabilities/build-for-webusb). This is optional, but having one will enable browsers to automatically offer to open the specified web page. This means that the end-to-end user experience for a device becomes "plug in device, driver automatically installs, browser automatically offers to open a page containing software to use the device".
 
@@ -105,6 +108,6 @@ WebUSB support is also indicated in the USB BOS descriptor using a platform GUID
 
 # Conclusion
 
-This future certainly is weird, and compatibility and platform-specific issues spill out into becoming everybody's problem, but there finally exists _a_ way to make drivers less painful. You "just" need to know how.
+This future certainly is weird and full of quirks, but there finally exists _a_ way to make drivers less painful. You "just" need to know how.
 
 Now you know!
