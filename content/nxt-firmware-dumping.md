@@ -5,6 +5,8 @@ Status: draft
 
 I've recently been contributing to the [Pybricks](https://github.com/pybricks/) project, a community-run port of MicroPython to Lego Mindstorms hardware. As part of that, I obtained a used [Lego NXT](https://en.wikipedia.org/wiki/Lego_Mindstorms_NXT) which just so happened to still be running the original version 1.01 firmware from when it launched in 2006. I wanted to archive a copy of this firmware, and doing so happened to involve the discovery of arbitrary code execution.
 
+The NXT is a relatively simple exploitation target and can serve as a good introduction to ARM and embedded exploit development.
+
 # Preliminary research
 
 Or, in the words of a much more innocent era, "Google is your friend" <small>(lol, not anymore, making research skills even more critical than they ever have been)</small>.
@@ -291,7 +293,7 @@ To test this, we can write the most basic assembly code in `nxtpwn.s`:
 bx lr
 ```
 
-This is an empty function which doesn't do anything.
+This is an empty function which doesn't do anything. If we redirect the direct command handler to it, all direct commands should stop working.
 
 <p class="aside_q">How do you learn ARM assembly language?</p>
 
@@ -415,8 +417,6 @@ This code sends a "direct" command with a dummy command byte of 0xaa (the firmwa
 ```python
 >>> hex(pwn_read(0))
 '0xeafffffe'
->>> hex(pwn_read(0))
-'0xeafffffe'
 >>> hex(pwn_read(4))
 '0xeafffffe'
 >>> hex(pwn_read(8))
@@ -435,7 +435,11 @@ This code sends a "direct" command with a dummy command byte of 0xaa (the firmwa
 '0xe5980104'
 ```
 
-This certainly looks like valid ARM code! (The leading 0xe indicates an instruction which is always executed (as opposed to only executed if some test is true), and `0xeafffffe` is an infinite loop.)
+This certainly looks like valid ARM code! (The leading `0xe` indicates an instruction which is always executed (in ARM, every instruction has an option to be conditionally executed only if certain flags are true), and `0xeafffffe` is an infinite loop.)
+
+<p class="aside_q">Why are you reading from address 0? Isn't that a null pointer?</p>
+
+<div class="aside_a"><p>This is a case where the abstractions of the C programming language start to break down. 0 is indeed a null pointer constant in C, but the hardware sees 0 as a memory address like any other. Some systems have nothing valid there, but some other systems (like this one) put <em>exception vectors</em> at this location. When certain types of hardware interrupts or exceptions happen, the CPU jumps to certain fixed addresses around address 0 (the specific types of exceptions and the specific addresses are a property of the CPU architecture).</p></div>
 
 All we need to do now is to loop over 256 KiB starting at <span class="tabnum">0x001<em>xxxxx</em></span> and save it to a file:
 
