@@ -1,7 +1,6 @@
 Title: Dumping Lego NXT firmware off of an existing brick
-Date: 2025-08-28
+Date: 2025-08-29
 Summary: Catgirls can have little a RCE, as a treat
-Status: draft
 
 I've recently been contributing to the [Pybricks](https://github.com/pybricks/) project, a community-run port of MicroPython to Lego Mindstorms hardware. As part of that, I obtained a used [Lego NXT](https://en.wikipedia.org/wiki/Lego_Mindstorms_NXT) which just so happened to still be running the original version 1.01 firmware from when it launched in 2006. I wanted to archive a copy of this firmware, and doing so happened to involve the discovery of arbitrary code execution.
 
@@ -297,7 +296,13 @@ This is an empty function which doesn't do anything. If we redirect the direct c
 
 <p class="aside_q">How do you learn ARM assembly language?</p>
 
-<div class="aside_a"><p>I personally learned ARM assembly from <a href="https://www.coranac.com/tonc/text/asm.htm">this tutorial</a> a long time ago. TODO: what should I put here?</p></div>
+<div class="aside_a"><div>
+<p>I personally learned ARM assembly from <a href="https://www.coranac.com/tonc/text/asm.htm">this tutorial</a> a long time ago. I generally think of "learning assembly" as consisting of at least two parts: learning how <em>all</em> CPUs work at a high level, and learning how one particular CPU architecture works.</p>
+
+<p>For the first part, I started by learning x86 assembly in order to hack PC software. It's also possible to learn from "academic" computer science materials, including free curricula focused around the RISC-V architecture. <a href="https://riscv-programming.org/">Here</a> is an example of one I have found. It is also possible to learn this by doing retrocomputing for historical 8-bit computer systems, although those will have more differences from modern CPUs.</p>
+
+<p>Given sufficient familiarity with the basics of CPUs, it's possible to study and understand documentation specific to ARM or another architecture. Looking at the output of a C compiler really helps to build familiarity and experience.</p>
+</div></div>
 
 We can use `python3 -i nxtpwn.py` to load the exploit code before dropping us into the Python REPL.
 
