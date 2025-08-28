@@ -461,3 +461,13 @@ $ xxd nxtpwn-dump.bin | less
 ```
 
 Dumping the firmware in this manner also dumps all of the user programs and data stored on the brick, so I won't be releasing this until I clean it up a bit (so as to protect the privacy of the previous owner).
+
+# What else?
+
+Although I haven't tested it, this exploit likely works on all NXT firmwares derived from the stock firmware. This means that it was and is possible to run [bare-metal code on the NXT](https://www.cs.tau.ac.il/~stoledo/lego/nxt-native/) without a modified firmware. This "just" requires somebody to write an appropriate program loader.
+
+These commands can be triggered over Bluetooth, so I believe it's possible for paired NXTs to send them to each other. It should be possible to write an NXT worm (please don't write a malicious one).
+
+If anybody is a skilled internet archivist, this is your chance to capture as many firmware versions as you can.
+
+Happy hacking!
